@@ -1,0 +1,2 @@
+# FFFDTD
+An electromagnetic simulator

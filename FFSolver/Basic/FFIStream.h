@@ -115,5 +115,39 @@ namespace MUFDTD{
 
 
 
+	/*// 入力ストリームからの入力ストリーム
+	class FFIStreamInIStream : public FFIStream{
+	private:
+		// 入力ストリーム
+		FFIStream *m_Stream;
+
+		// 部分入力ストリームのオフセット
+		uint64_t m_Offset;
+
+		// 部分入力ストリームの長さ
+		uint64_t m_Length;
+
+	public:
+		// コンストラクタ
+		FFIStreamInIStream(FFIStream &stream);
+
+		// コンストラクタ
+		FFIStreamInIStream(FFIStream &stream, uint64_t length);
+
+		// コンストラクタ
+		FFIStreamInIStream(FFIStream &stream, uint64_t offset, uint64_t length);
+
+		// ストリームの長さを取得する
+		uint64_t length(void) const override{
+			return m_Length;
+		}
+
+		// シークポインタを取得する
+		uint64_t tell(void) const override;
+
+		// シークポインタを設定する
+		void seek(uint64_t offset) override;
+	};*/
+
 
 }

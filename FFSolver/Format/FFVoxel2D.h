@@ -25,16 +25,18 @@ namespace MUFDTD{
 		// コピーコンストラクタ
 		FFVoxel2D(const FFVoxel2D &obj);
 
-		// コンストラクタ
-		// 与えた入力ストリームは削除される
-		FFVoxel2D(FFIStream *stream);
-
 		// デストラクタ
 		~FFVoxel2D();
 
 		// 入力ストリームからボクセルデータを読み込む
 		// 与えた入力ストリームは削除される
-		void loadFromIStream(FFIStream *stream);
+		void loadFromIStream(FFIStream &stream){
+			loadFromIStream(stream, stream.length());
+		}
+
+		// 入力ストリームからボクセルデータを読み込む
+		// 与えた入力ストリームは削除される
+		void loadFromIStream(FFIStream &stream, uint64_t length);
 
 		// ボクセルデータを出力ストリームに格納する
 		//void storeToOStream(void) const;
@@ -93,6 +95,12 @@ namespace MUFDTD{
 			if (m_Size.y == 0) throw;
 			index_t y_ = (y < 0) ? 0 : ((int32_t)m_Size.y <= y) ? m_Size.y - 1 : y;
 			result = *m_Data[y_];
+		}
+
+		// 指定した座標のボクセルデータを書き換える
+		void setPoint(index_t x, index_t y, bool value){
+			if ((m_Size.x <= x) || (m_Size.y <= y)) throw;
+			setPointInternal(x, y, value);
 		}
 
 	private:

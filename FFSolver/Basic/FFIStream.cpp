@@ -166,5 +166,76 @@ namespace MUFDTD{
 		return *m_Current++;
 	}
 
+
+
+	/*** FFIStreamInIStream ***/
+	
+	/*// コンストラクタ
+	FFIStreamInIStream::FFIStreamInIStream(FFIStream &stream){
+		m_Stream = &stream;
+		m_Offset = stream.tell();
+		m_Length = stream.length() - stream.tell();
+	}
+
+	// コンストラクタ
+	FFIStreamInIStream::FFIStreamInIStream(FFIStream &stream, uint64_t length){
+		m_Stream = &stream;
+		m_Offset = stream.tell();
+		m_Length = stream.length() - m_Offset;
+		if (length <= m_Length){
+			m_Length = length;
+		}
+		else{
+			throw;
+		}
+	}
+
+	// コンストラクタ
+	FFIStreamInIStream::FFIStreamInIStream(FFIStream &stream, uint64_t offset, uint64_t length){
+		m_Stream = &stream;
+		if (m_Stream->length() < offset){
+			throw;
+		}
+		m_Offset = offset;
+		m_Length = m_Stream->length() - m_Offset;
+		if (length <= m_Length){
+			m_Length = length;
+		}
+		else{
+			throw;
+		}
+	}
+
+	// シークポインタを取得する
+	uint64_t FFIStreamInIStream::tell(void) const{
+		uint64_t offset = m_Stream->tell();
+		if (offset < m_Offset){
+			throw;
+		}
+		offset -= m_Offset;
+		if (m_Length < offset){
+			throw;
+		}
+		return offset;
+	}
+
+	// シークポインタを設定する
+	void FFIStreamInIStream::seek(uint64_t offset){
+		if (m_Length < offset){
+			throw;
+		}
+		m_Stream->seek(m_Offset + offset);
+	}*/
+
+
+
+
+
+
+
+
+
+
+
 }
 

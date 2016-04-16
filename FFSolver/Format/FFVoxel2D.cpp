@@ -26,12 +26,6 @@ namespace MUFDTD{
 		}
 	}
 
-	// コンストラクタ
-	// 与えた入力ストリームは削除される
-	FFVoxel2D::FFVoxel2D(FFIStream *stream){
-		loadFromIStream(stream);
-	}
-
 	// デストラクタ
 	FFVoxel2D::~FFVoxel2D(){
 		for (index_t i = 0; i < m_Size.y; i++){
@@ -41,16 +35,22 @@ namespace MUFDTD{
 
 	// 入力ストリームからボクセルデータを読み込む
 	// 与えた入力ストリームは削除される
-	void FFVoxel2D::loadFromIStream(FFIStream *stream_){
-		std::unique_ptr<FFIStream> stream(stream_);
-
+	void FFVoxel2D::loadFromIStream(FFIStream &stream, uint64_t length){
 		// ヘッダーをパースする
-		if (stream->check(HEADER_STRING, strlen(HEADER_STRING)) == false) throw;
+		uint64_t offset = strlen(HEADER_STRING) + 4 + 4;
+		if (length < offset){
+			throw;
+		}
+		if (stream.check(HEADER_STRING, strlen(HEADER_STRING)) == false){
+			throw;
+		}
 		index2_t size;
-		size.x = stream->get4byte();
-		size.y = stream->get4byte();
-		if ((size.x < 0) || (MAX_SIZE < size.x)) throw;
-		if ((size.y < 0) || (MAX_SIZE < size.y)) throw;
+		size.x = stream.get4byte();
+		size.y = stream.get4byte();
+		if ((size.x < 0) || (MAX_SIZE < size.x) ||
+			(size.y < 0) || (MAX_SIZE < size.y)){
+			throw;
+		}
 
 		// メモリーを確保する
 		setSize(size);
@@ -61,8 +61,13 @@ namespace MUFDTD{
 		bool value = false;
 		index_t x = 0, y = 0;
 		while (0 < remaining){
-			uint8_t count = stream->get1byte();
-			if (remaining < count) throw;
+			if (length <= offset){
+				throw;
+			}
+			uint8_t count = stream.get1byte();
+			if (remaining < count){
+				throw;
+			}
 			remaining -= count;
 			while (0 < count--){
 				setPointInternal(x, y, value);
@@ -79,8 +84,10 @@ namespace MUFDTD{
 	// ボクセルデータの大きさを設定する
 	void FFVoxel2D::setSize(const index2_t &size){
 		// サイズをチェックする
-		if ((size.x <= 0) || (MAX_SIZE < size.x)) throw;
-		if ((size.y <= 0) || (MAX_SIZE < size.y)) throw;
+		if ((size.x <= 0) || (MAX_SIZE < size.x) ||
+			(size.y <= 0) || (MAX_SIZE < size.y)){
+			throw;
+		}
 
 		if (size.y < m_Size.y){
 			// Y方向に縮小する場合はラインを削除する
@@ -109,8 +116,10 @@ namespace MUFDTD{
 	void FFVoxel2D::addOffset(const index2_t &offset){
 		// サイズをチェックする
 		index2_t size = offset + m_Size;
-		if ((size.x <= 0) || (MAX_SIZE < size.x) || (size.x < m_Size.x)) throw;
-		if ((size.y <= 0) || (MAX_SIZE < size.y) || (size.y < m_Size.y)) throw;
+		if ((size.x <= 0) || (MAX_SIZE < size.x) || (size.x < m_Size.x) ||
+			(size.y <= 0) || (MAX_SIZE < size.y) || (size.y < m_Size.y)){
+			throw;
+		}
 
 		// X方向にオフセットを追加する
 		for (index_t i = 0; i < m_Size.y; i++){

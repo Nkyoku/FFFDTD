@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ソース ファイル">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="ヘッダー ファイル">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="リソース ファイル">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="ソース ファイル\Basic">
+      <UniqueIdentifier>{9a926a7e-a56b-4933-98e8-3d499c655c1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\Basic">
+      <UniqueIdentifier>{399084c6-af7b-4115-82bc-8e5102fb8891}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\Format">
+      <UniqueIdentifier>{60440d15-1459-4cc0-a96e-714bd52586ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Format">
+      <UniqueIdentifier>{14032917-d7ae-4ccc-a374-4d5f2b24d6c8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="FFConst.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="FFGrid.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="FFMaterial.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="FFSituation.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="FFSpace.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="FFType.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Basic\FFIStream.h">
+      <Filter>ヘッダー ファイル\Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="Format\FFVoxel2D.h">
+      <Filter>ヘッダー ファイル\Format</Filter>
+    </ClInclude>
+    <ClInclude Include="Format\FFVoxel3D.h">
+      <Filter>ヘッダー ファイル\Format</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="FFGrid.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="FFSituation.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="FFSpace.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Basic\FFIStream.cpp">
+      <Filter>ソース ファイル\Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="Format\FFVoxel2D.cpp">
+      <Filter>ソース ファイル\Format</Filter>
+    </ClCompile>
+    <ClCompile Include="Format\FFVoxel3D.cpp">
+      <Filter>ソース ファイル\Format</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

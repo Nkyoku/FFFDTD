@@ -6,8 +6,13 @@
 
 
 namespace MUFDTD{
+	// 3次元のボクセルデータを保持するクラス
+	class FFVoxel3D;
+	
 	// 2次元ボクセルデータを保持するクラス
 	class FFVoxel2D{
+		friend class FFVoxel3D;
+
 	private:
 		// 2次元ボクセルデータのヘッダー文字列
 		static const char HEADER_STRING[];
@@ -16,27 +21,24 @@ namespace MUFDTD{
 		index2_t m_Size;
 
 		// ボクセルデータ
-		std::vector<std::vector<bool>*> m_Data;
+		std::vector<bool> m_Data;
 
 	public:
 		// コンストラクタ
-		FFVoxel2D();
+		FFVoxel2D(void) : m_Size(0, 0){}
+
+		// コンストラクタ
+		FFVoxel2D(index_t wx, index_t wy, bool default_value = false);
 		
-		// コピーコンストラクタ
-		FFVoxel2D(const FFVoxel2D &obj);
-
-		// デストラクタ
-		~FFVoxel2D();
-
+		// コンストラクタ
 		// 入力ストリームからボクセルデータを読み込む
 		// 与えた入力ストリームは削除される
-		void loadFromIStream(FFIStream &stream){
-			loadFromIStream(stream, stream.length());
-		}
+		FFVoxel2D(FFIStream &stream) : FFVoxel2D(stream, stream.length()){}
 
+		// コンストラクタ
 		// 入力ストリームからボクセルデータを読み込む
 		// 与えた入力ストリームは削除される
-		void loadFromIStream(FFIStream &stream, uint64_t length);
+		FFVoxel2D(FFIStream &stream, uint64_t length);
 
 		// ボクセルデータを出力ストリームに格納する
 		//void storeToOStream(void) const;
@@ -46,30 +48,30 @@ namespace MUFDTD{
 			return m_Size;
 		}
 
-		// ボクセルデータの大きさを設定する
-		void setSize(const index2_t &size);
-
-		// ボクセルデータにオフセットを追加する
-		void addOffset(const index2_t &offset);
-
 		// 指定した座標のボクセルデータを取得する
 		// 範囲外の座標が指定された場合は例外を発生する
 		bool getPoint(index_t x, index_t y) const{
-			if ((m_Size.x <= x) || (m_Size.y <= y)) throw;
+			if ((m_Size.x <= x) || (m_Size.y <= y)){
+				throw;
+			}
 			return getPointInternal(x, y);
 		}
 
 		// 指定した座標のボクセルデータを取得する
 		// 範囲外の座標にはborderで指定した値を返す
 		bool getPointBorder(index_t x, index_t y, bool border = false) const{
-			if ((m_Size.x <= x) || (m_Size.y <= y)) return border;
+			if ((m_Size.x <= x) || (m_Size.y <= y)){
+				return border;
+			}
 			return getPointInternal(x, y);
 		}
 
 		// 指定した座標のボクセルデータを取得する
 		// 範囲外の座標には境界値を返す
 		bool getPointClamp(int32_t x, int32_t y) const{
-			if ((m_Size.x == 0) || (m_Size.y == 0)) throw;
+			if ((m_Size.x == 0) || (m_Size.y == 0)){
+				throw;
+			}
 			index_t x_ = (x < 0) ? 0 : ((int32_t)m_Size.x <= x) ? m_Size.x - 1 : x;
 			index_t y_ = (y < 0) ? 0 : ((int32_t)m_Size.y <= y) ? m_Size.y - 1 : y;
 			return getPointInternal(x_, y_);
@@ -78,23 +80,31 @@ namespace MUFDTD{
 		// 指定したY座標のラインデータを取得する
 		// 範囲外の座標が指定された場合は例外を発生する
 		void getLine(std::vector<bool> &result, index_t y) const{
-			if (m_Size.y <= y) throw;
-			result = *m_Data[y];
+			if (m_Size.y <= y){
+				throw;
+			}
+			getLineInternal(result, y);
 		}
 
 		// 指定したY座標のラインデータを取得する
 		// 範囲外の座標にはborderで指定した値を返す
 		void getLineBorder(std::vector<bool> &result, index_t y, bool border = false) const{
-			if (m_Size.y <= y) result = std::vector<bool>(m_Size.x, border);
-			else result = *m_Data[y];
+			if (m_Size.y <= y){
+				result = std::vector<bool>(m_Size.x, border);
+			}
+			else{
+				getLineInternal(result, y);
+			}
 		}
 
 		// 指定したY座標のラインデータを取得する
 		// 範囲外の座標には境界値を返す
-		void getLineClamp(std::vector<bool> &result, index_t y) const{
-			if (m_Size.y == 0) throw;
+		void getLineClamp(std::vector<bool> &result, int32_t y) const{
+			if (m_Size.y == 0){
+				throw;
+			}
 			index_t y_ = (y < 0) ? 0 : ((int32_t)m_Size.y <= y) ? m_Size.y - 1 : y;
-			result = *m_Data[y_];
+			getLineInternal(result, y_);
 		}
 
 		// 指定した座標のボクセルデータを書き換える
@@ -104,17 +114,17 @@ namespace MUFDTD{
 		}
 
 	private:
-		// 代入を禁止する
-		FFVoxel2D& operator=(const FFVoxel2D &obj){}
-
 		// 指定した座標のボクセルデータを取得する
 		bool getPointInternal(index_t x, index_t y) const{
-			return (*m_Data[y])[x];
+			return m_Data[(size_t)x + (size_t)m_Size.x * y];
 		}
+
+		// 指定したY座標のラインデータを取得する
+		void getLineInternal(std::vector<bool> &result, index_t y) const;
 
 		// 指定した座標のボクセルデータを書き換える
 		void setPointInternal(index_t x, index_t y, bool value){
-			(*m_Data[y])[x] = value;
+			m_Data[(size_t)x + (size_t)m_Size.x * y] = value;
 		}
 	};
 }

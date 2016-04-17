@@ -3,7 +3,7 @@
 #include "FFGrid.h"
 #include "FFSpace.h"
 //#include "Circuit/FFCircuit.h"
-#include "Format/FFVoxelReader.h"
+#include "Format/FFVoxel3D.h"
 //#include <vector>
 
 
@@ -122,7 +122,7 @@ namespace MUFDTD{
 
 	public:
 		// ボクセルデータを展開する
-		void loadVoxelData(const index3_t &offset, FFVoxelReader *voxel_reader, VoxelOPs opecode = VoxelOPs::Add);
+		void loadVoxelData(const index3_t &offset, const FFVoxel3D &voxel3d);
 
 
 

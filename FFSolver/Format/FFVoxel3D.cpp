@@ -48,9 +48,9 @@ namespace MUFDTD{
 		for (index_t z = 0; z < m_Size.z; z++){
 			uint64_t slice_offset = stream.tell();
 			uint32_t slice_length = length_list[z];
-			m_Data[z].loadFromIStream(stream, slice_length);
-			index2_t slice_size = m_Data[z].getSize;
-			if ((m_Size.x < slice_size.x) || (m_Size.y < slice_size.y)){
+			m_Data[z] = FFVoxel2D(stream, slice_length);
+			index2_t slice_size = m_Data[z].getSize();
+			if ((m_Size.x != slice_size.x) || (m_Size.y != slice_size.y)){
 				throw;
 			}
 			stream.seek(slice_offset + slice_length);

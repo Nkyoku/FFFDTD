@@ -147,9 +147,8 @@ namespace MUFDTD{
 		Periodic,		// 周期境界条件
 	};
 
-	// ボクセル演算
-	enum class VoxelOPs{
-		Overwrite,		// 既存のボクセルを上書きする
+	// ブーリアン演算
+	enum class BoolOPs{
 		Add,			// 真空でない部分を上書きする
 		Minus,			// 真空でない部分を真空にする
 		Intersection,	// 共通部分を上書きする

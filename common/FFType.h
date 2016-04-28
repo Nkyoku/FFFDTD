@@ -7,7 +7,7 @@
 
 
 
-namespace MUFDTD{
+namespace FFFDTD{
 	// OpenGL Mathematicsを使用する
 	using namespace glm;
 

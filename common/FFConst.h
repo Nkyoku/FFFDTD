@@ -4,7 +4,7 @@
 
 
 
-namespace MUFDTD{
+namespace FFFDTD{
 	/*** 数学・物理定数 ***/
 	
 	// 円周率

@@ -3,7 +3,7 @@
 
 
 
-namespace MUFDTD{
+namespace FFFDTD{
 	// ボリュームデータのヘッダー文字列
 	const char FFVolumeData::HEADER_STRING[] = {'F', 'F', 'V', 'L'};
 

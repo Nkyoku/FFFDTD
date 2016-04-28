@@ -6,7 +6,7 @@
 
 
 
-namespace MUFDTD{
+namespace FFFDTD{
 	// 2値データの空間配置を保持するクラス
 	class FFBitVolumeData{
 	private:

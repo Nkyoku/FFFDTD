@@ -2,7 +2,7 @@
 
 
 
-namespace MUFDTD{
+namespace FFFDTD{
 	// コンストラクタ
 	FFOStream::FFOStream(void)
 		: m_Memory(nullptr)

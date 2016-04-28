@@ -2,7 +2,7 @@
 
 
 
-namespace MUFDTD{
+namespace FFFDTD{
 	// コンストラクタ
 	FFIStream::FFIStream(void)
 		: m_Head(nullptr), m_Current(nullptr), m_Tail(nullptr)

@@ -11,7 +11,7 @@
 
 
 
-namespace MUFDTD{
+namespace FFFDTD{
 	// 境界条件を格納する構造体
 	struct BC_t{
 		BoundaryCondition x, y, z;

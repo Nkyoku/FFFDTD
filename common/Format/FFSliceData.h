@@ -5,7 +5,7 @@
 
 
 
-namespace MUFDTD{
+namespace FFFDTD{
 	// 材質の空間配置を保持するクラス
 	class FFVolumeData;
 	

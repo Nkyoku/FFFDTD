@@ -3,7 +3,7 @@
 
 
 
-namespace MUFDTD{
+namespace FFFDTD{
 	// スライスデータのヘッダー文字列
 	const char FFSliceData::HEADER_STRING[4] = {'F', 'F', 'S', 'L'};
 	

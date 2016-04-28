@@ -5,7 +5,7 @@
 
 
 
-namespace MUFDTD{
+namespace FFFDTD{
 	// コンストラクタ
 	FFSituation::FFSituation(void)
 		: m_Size(0, 0, 0)

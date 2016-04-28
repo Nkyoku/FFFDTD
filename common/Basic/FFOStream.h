@@ -6,7 +6,7 @@
 
 
 
-namespace FFFDTD{
+namespace MUFDTD{
 	// 出力ストリーム
 	class FFOStream{
 	private:

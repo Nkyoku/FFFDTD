@@ -9,6 +9,10 @@ namespace FFFDTD{
 	}
 
 	// コンストラクタ
+	FFGrid::FFGrid(void){
+	}
+
+	// コンストラクタ
 	FFGrid::FFGrid(const FFGrid &grid, index_t offset, index_t size){
 		m_Width.resize(size);
 		for (index_t i = 0; i < size; i++){

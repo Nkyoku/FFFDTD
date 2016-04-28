@@ -8,7 +8,7 @@
 
 
 
-namespace FFFDTD{
+namespace MUFDTD{
 	// 入力ストリーム
 	class FFIStream{
 	private:

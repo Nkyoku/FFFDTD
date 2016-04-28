@@ -2,14 +2,16 @@
 
 #include "FFGrid.h"
 #include "FFMaterial.h"
+//#include "FFSpace.h"
 //#include "Circuit/FFCircuit.h"
 #include "Format/FFVolumeData.h"
 #include "Format/FFBitVolumeData.h"
+//#include <vector>
 #include "Basic/FFIStream.h"
 
 
 
-namespace FFFDTD{
+namespace MUFDTD{
 	// 境界条件を格納する構造体
 	struct BC_t{
 		BoundaryCondition x, y, z;

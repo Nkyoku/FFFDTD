@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <chrono>
 
+#include "tinyxml2.h"
 
 
 using namespace FFFDTD;

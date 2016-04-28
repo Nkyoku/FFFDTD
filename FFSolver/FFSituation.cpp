@@ -1,10 +1,11 @@
 ﻿#include "FFSituation.h"
 #include "FFConst.h"
 #include <algorithm>
+//#include <string>
 
 
 
-namespace FFFDTD{
+namespace MUFDTD{
 	// コンストラクタ
 	FFSituation::FFSituation(void)
 		: m_Size(0, 0, 0)

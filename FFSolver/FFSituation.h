@@ -2,11 +2,10 @@
 
 #include "FFGrid.h"
 #include "FFMaterial.h"
-//#include "FFSpace.h"
+#include "FFPointObject.h"
 //#include "Circuit/FFCircuit.h"
 #include "Format/FFVolumeData.h"
 #include "Format/FFBitVolumeData.h"
-//#include <vector>
 #include "Basic/FFIStream.h"
 
 
@@ -59,6 +58,12 @@ namespace FFFDTD{
 
 		// 材質リスト
 		std::vector<FFMaterial*> m_MaterialList;
+
+		// 観測点リスト(電界成分の位置)
+		std::vector<FFPointObject> m_ProbePointList;
+
+		// 観測面リスト(磁界成分の位置)
+		std::vector<FFPointObject> m_ProbePlaneList;
 
 		// ポートリスト
 		
@@ -157,6 +162,14 @@ namespace FFFDTD{
 
 		// ボリュームデータとPECデータを現在のグリッド設定から作成する
 		//void createVolumeAndPECDataFromGrid(void);
+
+
+
+		// 観測点を配置する
+		size_t placeProbePoint(const FFPointObject &object);
+
+		// 観測面を配置する
+		size_t placeProbePoint(const FFPointObject &object);
 
 #pragma endregion
 

@@ -41,13 +41,13 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>false</LinkIncremental>
+    <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>$(SolutionDir)tmp\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LinkIncremental>false</LinkIncremental>
+    <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>$(SolutionDir)tmp\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
@@ -100,7 +100,10 @@
     <ClInclude Include="..\common\Format\FFVolumeData.h" />
     <ClInclude Include="FFGrid.h" />
     <ClInclude Include="FFMaterial.h" />
+    <ClInclude Include="FFPointObject.h" />
+    <ClInclude Include="FFProbePoint.h" />
     <ClInclude Include="FFSituation.h" />
+    <ClInclude Include="FFSource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\common\Basic\FFIStream.cpp" />

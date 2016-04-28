@@ -325,6 +325,83 @@ namespace FFFDTD{
 	// PECの材質IDを作成する
 	m_MaterialList[0] = new FFMaterial();
 	}*/
+
+	// 観測点を配置する
+	size_t FFSituation::placeProbePoint(const FFPointObject &object){
+		index3_t pos = object.getPos();
+		DIR_e dir = object.getDir();
+		if ((dir == X_PLUS) || (dir == X_MINUS)){
+			if ((m_Size.x <= pos.x) || (m_Size.y < pos.y) || (m_Size.z < pos.z)){
+				throw;
+			}
+			if (pos.y == 0){
+				pos.y = m_Size.y;
+			}
+			if (pos.z == 0){
+				pos.z = m_Size.z;
+			}
+		}
+		else if ((dir == Y_PLUS) || (dir == Y_MINUS)){
+			if ((m_Size.x < pos.x) || (m_Size.y <= pos.y) || (m_Size.z < pos.z)){
+				throw;
+			}
+			if (pos.x == 0){
+				pos.x = m_Size.x;
+			}
+			if (pos.z == 0){
+				pos.z = m_Size.z;
+			}
+		}
+		else if ((dir == Z_PLUS) || (dir == Z_MINUS)){
+			if ((m_Size.x < pos.x) || (m_Size.y < pos.y) || (m_Size.z <= pos.z)){
+				throw;
+			}
+			if (pos.x == 0){
+				pos.x = m_Size.x;
+			}
+			if (pos.y == 0){
+				pos.y = m_Size.y;
+			}
+		}
+		else{
+			throw;
+		}
+		m_ProbePointList.push_back(FFPointObject(pos, dir));
+	}
+
+	// 観測面を配置する
+	size_t FFSituation::placeProbePoint(const FFPointObject &object){
+		index3_t pos = object.getPos();
+		DIR_e dir = object.getDir();
+		if ((dir == X_PLUS) || (dir == X_MINUS)){
+			if ((m_Size.x < pos.x) || (m_Size.y <= pos.y) || (m_Size.z <= pos.z)){
+				throw;
+			}
+			if (pos.x == 0){
+				pos.x = m_Size.x;
+			}
+		}
+		else if ((dir == Y_PLUS) || (dir == Y_MINUS)){
+			if ((m_Size.x <= pos.x) || (m_Size.y < pos.y) || (m_Size.z <= pos.z)){
+				throw;
+			}
+			if (pos.y == 0){
+				pos.y = m_Size.y;
+			}
+		}
+		else if ((dir == Z_PLUS) || (dir == Z_MINUS)){
+			if ((m_Size.x <= pos.x) || (m_Size.y <= pos.y) || (m_Size.z < pos.z)){
+				throw;
+			}
+			if (pos.z == 0){
+				pos.z = m_Size.z;
+			}
+		}
+		else{
+			throw;
+		}
+		m_ProbePlaneList.push_back(FFPointObject(pos, dir));
+	}
 #pragma endregion
 
 #pragma region 係数を計算するメソッド

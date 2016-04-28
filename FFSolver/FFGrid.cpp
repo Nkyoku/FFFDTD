@@ -9,10 +9,6 @@ namespace FFFDTD{
 	}
 
 	// コンストラクタ
-	FFGrid::FFGrid(void){
-	}
-
-	// コンストラクタ
 	FFGrid::FFGrid(const FFGrid &grid, index_t offset, index_t size){
 		m_Width.resize(size);
 		for (index_t i = 0; i < size; i++){
@@ -65,13 +61,17 @@ namespace FFFDTD{
 		if (ppos <= m_Pos.front()){
 			// グリッドの負の範囲外
 			double lpos = (ppos - m_Pos.front()) / m_MidWidth.front();
-			if (out_of_range != nullptr) *out_of_range = (lpos <= -0.5);
+			if (out_of_range != nullptr){
+				*out_of_range = (lpos <= -0.5);
+			}
 			return lpos;
 		}
 		else if (m_Pos.back() <= ppos){
 			// グリッドの正の範囲外
 			double lpos = (ppos - m_Pos.back()) / m_MidWidth.back();
-			if (out_of_range != nullptr) *out_of_range = (0.5 <= lpos);
+			if (out_of_range != nullptr){
+				*out_of_range = (0.5 <= lpos);
+			}
 			return m_Width.size() + lpos;
 		}
 		else{
@@ -79,7 +79,9 @@ namespace FFFDTD{
 			for (size_t i = 0; i < m_Width.size(); i++){
 				if (ppos <= m_Pos[i + 1]){
 					double lpos = (ppos - m_Pos[i]) / m_Width[i];
-					if (out_of_range != nullptr) *out_of_range = false;
+					if (out_of_range != nullptr){
+						*out_of_range = false;
+					}
 					return i + lpos;
 				}
 			}
@@ -94,23 +96,31 @@ namespace FFFDTD{
 		if (lpos <= 0.0){
 			// グリッドの負の範囲外
 			double ppos = m_Pos.front() + lpos * m_MidWidth.front();
-			if (out_of_range != nullptr) *out_of_range = (lpos <= -0.5);
+			if (out_of_range != nullptr){
+				*out_of_range = (lpos <= -0.5);
+			}
 			return lpos;
 		}
 		else if ((double)(m_Pos.size() - 1) <= lpos){
 			// グリッドの正の範囲外
 			lpos -= (m_Pos.size() - 1);
-			if (out_of_range != nullptr) *out_of_range = (0.5 <= lpos);
+			if (out_of_range != nullptr){
+				*out_of_range = (0.5 <= lpos);
+			}
 			return m_Pos.back() + m_MidWidth.back() * lpos;
 		}
 		else{
 			// グリッドの範囲内
 			int i = (int)lpos;
-			if (out_of_range != nullptr) *out_of_range = false;
+			if (out_of_range != nullptr){
+				*out_of_range = false;
+			}
 			return m_Pos[i] + m_Width[i] * (lpos - i);
 		}
 		// 異常
-		if (out_of_range != nullptr) *out_of_range = true;
+		if (out_of_range != nullptr){
+			*out_of_range = true;
+		}
 		return std::numeric_limits<double>::quiet_NaN();
 	}
 }

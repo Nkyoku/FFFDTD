@@ -4,7 +4,7 @@
 
 
 
-namespace MUFDTD{
+namespace FFFDTD{
 	// 一つの軸のグリッド情報を管理するクラス
 	class FFGrid{
 		/*** メンバー変数 ***/
@@ -22,6 +22,9 @@ namespace MUFDTD{
 
 		/*** メソッド ***/
 	public:
+		// コンストラクタ
+		FFGrid(void);
+
 		// コンストラクタ
 		// 指定されたグリッドの一部を切り出す
 		FFGrid(const FFGrid &grid, index_t offset, index_t size);

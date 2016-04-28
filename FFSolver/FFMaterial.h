@@ -5,7 +5,7 @@
 
 
 
-namespace MUFDTD{
+namespace FFFDTD{
 	// 媒質の物性情報を保持するクラス
 	class FFMaterial{
 		/*** メンバー変数 ***/

@@ -14,6 +14,7 @@
     <ProjectGuid>{6489C7B9-C16B-413D-A84A-2B338F724499}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>FFSolver</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -42,7 +43,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
-    <IntDir>$(SolutionDir)tmp\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)tmp\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -57,15 +58,14 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_CONSOLE;_LIB;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)common</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>OpenCL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -77,7 +77,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_CONSOLE;_LIB;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)common</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
@@ -85,30 +85,33 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>OpenCL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Basic\FFIStream.h" />
-    <ClInclude Include="Format\FFVoxel2D.h" />
-    <ClInclude Include="Format\FFVoxel3D.h" />
-    <ClInclude Include="FFConst.h" />
+    <ClInclude Include="..\common\Basic\FFIStream.h" />
+    <ClInclude Include="..\common\Basic\FFOStream.h" />
+    <ClInclude Include="..\common\FFConst.h" />
+    <ClInclude Include="..\common\FFType.h" />
+    <ClInclude Include="..\common\Format\FFBitSliceData.h" />
+    <ClInclude Include="..\common\Format\FFBitVolumeData.h" />
+    <ClInclude Include="..\common\Format\FFSliceData.h" />
+    <ClInclude Include="..\common\Format\FFVolumeData.h" />
     <ClInclude Include="FFGrid.h" />
     <ClInclude Include="FFMaterial.h" />
     <ClInclude Include="FFSituation.h" />
-    <ClInclude Include="FFSpace.h" />
-    <ClInclude Include="FFType.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Basic\FFIStream.cpp" />
-    <ClCompile Include="Format\FFVoxel2D.cpp" />
-    <ClCompile Include="Format\FFVoxel3D.cpp" />
+    <ClCompile Include="..\common\Basic\FFIStream.cpp" />
+    <ClCompile Include="..\common\Basic\FFOStream.cpp" />
+    <ClCompile Include="..\common\Format\FFBitSliceData.cpp" />
+    <ClCompile Include="..\common\Format\FFBitVolumeData.cpp" />
+    <ClCompile Include="..\common\Format\FFSliceData.cpp" />
+    <ClCompile Include="..\common\Format\FFVolumeData.cpp" />
     <ClCompile Include="FFGrid.cpp" />
     <ClCompile Include="FFSituation.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="FFSpace.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

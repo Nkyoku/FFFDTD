@@ -27,9 +27,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="FFConst.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="FFGrid.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -39,19 +36,28 @@
     <ClInclude Include="FFSituation.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="FFSpace.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="FFType.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Basic\FFIStream.h">
-      <Filter>ヘッダー ファイル\Basic</Filter>
-    </ClInclude>
-    <ClInclude Include="Format\FFVoxel2D.h">
+    <ClInclude Include="..\common\Format\FFVolumeData.h">
       <Filter>ヘッダー ファイル\Format</Filter>
     </ClInclude>
-    <ClInclude Include="Format\FFVoxel3D.h">
+    <ClInclude Include="..\common\Format\FFSliceData.h">
+      <Filter>ヘッダー ファイル\Format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\Basic\FFIStream.h">
+      <Filter>ヘッダー ファイル\Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\FFConst.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\FFType.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\Basic\FFOStream.h">
+      <Filter>ヘッダー ファイル\Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\Format\FFBitSliceData.h">
+      <Filter>ヘッダー ファイル\Format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\Format\FFBitVolumeData.h">
       <Filter>ヘッダー ファイル\Format</Filter>
     </ClInclude>
   </ItemGroup>
@@ -65,16 +71,22 @@
     <ClCompile Include="FFSituation.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="FFSpace.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Basic\FFIStream.cpp">
-      <Filter>ソース ファイル\Basic</Filter>
-    </ClCompile>
-    <ClCompile Include="Format\FFVoxel2D.cpp">
+    <ClCompile Include="..\common\Format\FFSliceData.cpp">
       <Filter>ソース ファイル\Format</Filter>
     </ClCompile>
-    <ClCompile Include="Format\FFVoxel3D.cpp">
+    <ClCompile Include="..\common\Format\FFVolumeData.cpp">
+      <Filter>ソース ファイル\Format</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\Basic\FFIStream.cpp">
+      <Filter>ソース ファイル\Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\Basic\FFOStream.cpp">
+      <Filter>ソース ファイル\Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\Format\FFBitVolumeData.cpp">
+      <Filter>ソース ファイル\Format</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\Format\FFBitSliceData.cpp">
       <Filter>ソース ファイル\Format</Filter>
     </ClCompile>
   </ItemGroup>

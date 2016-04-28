@@ -1,10 +1,13 @@
 ﻿#pragma once
 
 #include "FFGrid.h"
-#include "FFSpace.h"
+#include "FFMaterial.h"
+//#include "FFSpace.h"
 //#include "Circuit/FFCircuit.h"
-#include "Format/FFVoxel3D.h"
+#include "Format/FFVolumeData.h"
+#include "Format/FFBitVolumeData.h"
 //#include <vector>
+#include "Basic/FFIStream.h"
 
 
 
@@ -12,7 +15,7 @@ namespace MUFDTD{
 	// 境界条件を格納する構造体
 	struct BC_t{
 		BoundaryCondition x, y, z;
-		index_t pmlL;
+		index3_t pmlL;
 		double pmlM;
 		double pmlR0;
 	};
@@ -23,74 +26,107 @@ namespace MUFDTD{
 	class FFSituation{
 		/*** 定数 ***/
 	private:
-		// 真空の物質ID
-		static const matid_t MATID_VACUUM = MUSpace::MATID_VACUUM;
-
-		// PECの媒質ID
-		static const matid_t MATID_PEC = MUSpace::MATID_PEC;
+		// PECの材質ID
+		static const matid_t MATID_PEC = 0;
 
 
 
 		/*** メンバー変数 ***/
 	private:
 		// グローバル領域のサイズ
-		index3_t m_GlobalSize;
+		index3_t m_Size;
 
 		// ローカル領域のオフセット
-		//index3_t m_Offset;
-		index_t m_OffsetZ;
+		index_t m_LocalOffsetZ;
 		
 		// ローカル領域のサイズ
-		//index3_t m_Size;
-		index_t m_SizeZ;
+		index_t m_LocalSizeZ;
 
-		// ループ元の座標
-		//index3_t m_LoopPos;
-		index_t m_LoopZ;
+		// Z方向の正端に接続される座標
+		index_t m_ConnectionZ;
 
-		// グリッド情報
+		// グリッド
 		FFGrid m_GridX, m_GridY, m_GridZ;
-
-		// 媒質の空間配置情報
-		MUSpace *m_Space;
 
 		// 境界条件
 		BC_t m_BC;
+
+		// ボリュームデータ
+		FFVolumeData m_Volume;
+
+		// PECワイヤーのボリュームデータ
+		FFBitVolumeData m_PECX, m_PECY, m_PECZ;
+
+		// 材質リスト
+		std::vector<FFMaterial*> m_MaterialList;
+
+		// ポートリスト
+		
 
 
 
 		/*** メソッド ***/
 	public:
 		// コンストラクタ
-		FFSituation(const FFGrid &grid_x, const FFGrid &grid_y, const FFGrid &grid_z, const BC_t &bc, index_t offset, index_t size);
+		FFSituation(void);
 
 		// デストラクタ
 		~FFSituation();
 
+#pragma region 初期化関連のメソッド
+	public:
+		// グリッドを設定する
+		void setGrids(const FFGrid &grid_x, const FFGrid &grid_y, const FFGrid &grid_z, const BC_t &bc);
+
+		// 処理の分割を設定する
+		void setDivision(index_t offset, index_t size);
+
+		// ボリュームデータを作成する
+		void createVolumeData(void);
+#pragma endregion
+
+#pragma region 材質関連のメソッド
+		// 材質リストを初期化する
+		void initializeMaterialList(size_t count);
+
+		// 新しく材質データを登録する
+		matid_t registerMaterial(FFMaterial *mat);
+
+		// 指定した材質IDで材質データを登録する
+		void registerMaterial(matid_t matid, FFMaterial *mat);
+
+		// 材質リストのすべての材質の物性値が指定されているか調べる
+		bool isMaterialListFilled(void);
+
+		// 指定した材質IDの材質データを取得する
+		const FFMaterial* getMaterialByID(matid_t matid);
+#pragma endregion
+
+#pragma region シミュレーション環境の情報を取得するメソッド
 	public:
 		// 最適なタイムステップを計算する
 		double calcTimestep(void) const;
 
 		// グローバル領域の大きさを取得する
 		const index3_t getGlobalSize(void) const{
-			return m_GlobalSize;
+			return m_Size;
 		}
 
 		// ローカル領域の大きさを取得する
 		index_t getLocalSize(void) const{
-			return m_SizeZ;
+			return m_LocalSizeZ;
 		}
 
 		// ローカル領域のオフセットを取得する
 		index_t getLocalOffset(void) const{
-			return m_OffsetZ;
+			return m_LocalOffsetZ;
 		}
 
 		// 境界条件を取得する
 		BoundaryCondition getBC(AXIS_e axis) const;
 
 		// PML吸収境界条件の層数を取得する
-		int getPmlL(void) const{
+		const index3_t& getPmlL(void) const{
 			return m_BC.pmlL;
 		}
 
@@ -103,26 +139,68 @@ namespace MUFDTD{
 		double getPmlR0(void) const{
 			return m_BC.pmlR0;
 		}
+#pragma endregion
+		
+#pragma region シミュレーション環境を作成するメソッド
+		// 指定した材質IDの直方体を配置する
+		bool placeCuboid(matid_t matid, const index3_t &pos1, const index3_t &pos2);
 
-	private:
-		// X方向に媒質を配置する
-		void placeMediumX(matid_t matid, const index3_t &gpos, index_t count);
+		// PECワイヤーの直方体を配置する
+		bool placePECCuboid(const index3_t &pos1, const index3_t &pos2);
 
-		// X方向にX方向のPECワイヤーを配置する
-		void placePECXX(const index3_t &gpos, index_t count);
 
-		// X方向にY方向のPECワイヤーを配置する
-		void placePECYX(const index3_t &gpos, index_t count);
+		// PECデータをストリームから読み込む
+		//void loadPECData(FFIStream &stream);
 
-		// X方向にZ方向のPECワイヤーを配置する
-		void placePECZX(const index3_t &gpos, index_t count);
+		// ボリュームデータをストリームから読み込む
+		//void loadVolumeData(FFIStream &stream);
 
-		// X方向にPECボックスを配置する
-		void placePECBoxX(const index3_t &gpos, index_t count);
+		// ボリュームデータとPECデータを現在のグリッド設定から作成する
+		//void createVolumeAndPECDataFromGrid(void);
 
+#pragma endregion
+
+#pragma region 係数を計算するメソッド
 	public:
-		// ボクセルデータを展開する
-		void loadVoxelData(const index3_t &offset, const FFVoxel3D &voxel3d);
+		// Exに作用する物性値を取得する
+		// PECワイヤーがあるときtrueを返す
+		bool getMaterialEx(const index3_t &pos, FFMaterial *material) const;
+
+		// Eyに作用する物性値を取得する
+		// PECワイヤーがあるときtrueを返す
+		bool getMaterialEy(const index3_t &pos, FFMaterial *material) const;
+
+		// Ezに作用する物性値を取得する
+		// PECワイヤーがあるときtrueを返す
+		bool getMaterialEz(const index3_t &pos, FFMaterial *material) const;
+
+		// Hxに作用する物性値を取得する
+		void getMaterialHx(const index3_t &pos, FFMaterial *material) const;
+
+		// Hyに作用する物性値を取得する
+		void getMaterialHy(const index3_t &pos, FFMaterial *material) const;
+
+		// Hzに作用する物性値を取得する
+		void getMaterialHz(const index3_t &pos, FFMaterial *material) const;
+
+		/*private:
+		// グローバル座標から配列のインデックスを計算する
+		size_t getIndex(index_t x, index_t y, index_t z) const{
+			return (size_t)x + (size_t)m_Size.x * ((size_t)y + (size_t)m_Size.y * (size_t)(z - m_LocalOffsetZ));
+		}
+
+		// グローバル座標から配列のインデックスを計算する
+		size_t getIndex(const index3_t &pos) const{
+			return getIndex(pos.x, pos.y, pos.z);
+		}*/
+#pragma endregion
+
+
+
+
+
+
+
 
 
 

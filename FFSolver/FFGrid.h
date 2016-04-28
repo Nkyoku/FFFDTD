@@ -23,6 +23,9 @@ namespace MUFDTD{
 		/*** メソッド ***/
 	public:
 		// コンストラクタ
+		FFGrid(void);
+
+		// コンストラクタ
 		// 指定されたグリッドの一部を切り出す
 		FFGrid(const FFGrid &grid, index_t offset, index_t size);
 

@@ -234,3 +234,32 @@ _Pvt_Extensions
 
 # FAKE - F# Make
 .fake/
+/FFSolver/DSource.cpp
+/FFSolver/DSolverOMPCore.cpp
+/FFSolver/DSolverOMP.h
+/FFSolver/DSolverOMP.cpp
+/FFSolver/DSolverOCL.h
+/FFSolver/DSolverOCL.cpp
+/FFSolver/DSolverMaster.h
+/FFSolver/DSolverMaster.cpp
+/FFSolver/DSolver.h
+/FFSolver/DSolver.cpp
+/FFSolver/DResource.h
+/FFSolver/DProbe.h
+/FFSolver/DProbe.cpp
+/FFSolver/DPort.h
+/FFSolver/DPort.cpp
+/FFSolver/DPlaneObject.h
+/FFSolver/DNearField.h
+/FFSolver/DNearField.cpp
+/FFSolver/DFDTD.h
+/FFSolver/tinyxml2.h
+/FFSolver/tinyxml2.cpp
+/FFSolver/Output.h
+/FFSolver/MUSource.h
+/FFSolver/MUObject.h
+/FFSolver/MUObject.cpp
+/FFSolver/MUCircuit
+/include/zlib
+/zlib1.dll
+/zdll.lib

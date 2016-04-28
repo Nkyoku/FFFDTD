@@ -1,10 +1,11 @@
-﻿// テストのためのmain
+﻿// シミュレータ本体
 
-#include "MUSituation.h"
+#include "FFSituation.h"
 
 #include <stdio.h>
 #include <chrono>
 
+#include "tinyxml2.h"
 
 
 using namespace MUFDTD;
@@ -36,19 +37,22 @@ static std::vector<double> linspace(T start, T end, int n){
 
 // メイン
 int main(int argc, char *argv[]){
-	// MUSituationの生成
-	MUGrid grid_x = constspace(1.0, 10);
-	MUGrid grid_y = constspace(1.0, 10);
-	MUGrid grid_z = constspace(1.0, 10);
+	// FFSituationの生成
+	FFGrid grid_x = constspace(1.0, 10);
+	FFGrid grid_y = constspace(1.0, 12);
+	FFGrid grid_z = constspace(1.0, 14);
 	BC_t bc = {
 		BoundaryCondition::PML,
 		BoundaryCondition::PML,
 		BoundaryCondition::PML,
-		3,
+		index3_t(3, 3, 3),
 		2.0,
 		1e-5
 	};
-	MUSituation situation(grid_x, grid_y, grid_z, bc, index3_t(0, 0, 0), index3_t(10, 10, 10));
+	FFSituation situation;
+	situation.setGrids(grid_x, grid_y, grid_z, bc);
+	situation.setDivision(0, 14);
+	situation.createVolumeData();
 
 	index3_t global_size = situation.getGlobalSize();
 	printf("Situation1 :\n");
@@ -56,8 +60,8 @@ int main(int argc, char *argv[]){
 	printf("\tLocalSize   : %d\n", situation.getLocalSize());
 	printf("\tLocalOffset : %d\n", situation.getLocalOffset());
 
-
-
+	
+	situation.placeCuboid(10, index3_t(0, 0, 0), index3_t(10, 12, 14));
 
 
 

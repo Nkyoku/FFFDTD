@@ -42,7 +42,7 @@ namespace MUFDTD{
 	// 倍精度複素数型
 	using complex = std::complex<double>;
 
-	// 物質IDを保持する型
+	// 材質IDを保持する型
 	using matid_t = uint16_t;
 
 	// 係数インデックス型
@@ -69,7 +69,19 @@ namespace MUFDTD{
 	// 座標インデックス型4次元ベクトル
 	using index4_t = u32vec4;
 
+	// 符号付き座標インデックス型
+	using sindex_t = int32_t;
 
+	// 符号付き座標インデックス型2次元ベクトル
+	using sindex2_t = i32vec2;
+
+	// 符号付き座標インデックス型3次元ベクトル
+	using sindex3_t = i32vec3;
+
+	// 符号付き座標インデックス型4次元ベクトル
+	using sindex4_t = i32vec4;
+	
+	
 
 	// 向き
 	enum DIR_e{
@@ -147,14 +159,8 @@ namespace MUFDTD{
 		Periodic,		// 周期境界条件
 	};
 
-	// ブーリアン演算
-	enum class BoolOPs{
-		Add,			// 真空でない部分を上書きする
-		Minus,			// 真空でない部分を真空にする
-		Intersection,	// 共通部分を上書きする
-	};
-
-
+	
+	
 
 
 }

@@ -87,8 +87,6 @@ namespace FFFDTD{
 		m_PECZ.createSlices(m_LocalOffsetZ, m_LocalOffsetZ + m_LocalSizeZ - 1, false);
 		if (m_ConnectionZ < m_Size.z){
 			m_Volume.createSlices(m_ConnectionZ, m_ConnectionZ, MATID_PEC);
-			//m_PECX.createSlices(m_ConnectionZ, m_ConnectionZ, false);
-			//m_PECY.createSlices(m_ConnectionZ, m_ConnectionZ, false);
 		}
 	}
 #pragma endregion
@@ -327,7 +325,7 @@ namespace FFFDTD{
 	}*/
 
 	// 観測点を配置する
-	size_t FFSituation::placeProbePoint(const FFPointObject &object){
+	oindex_t FFSituation::placeProbePoint(const FFPointObject &object){
 		index3_t pos = object.getPos();
 		DIR_e dir = object.getDir();
 		if ((dir == X_PLUS) || (dir == X_MINUS)){
@@ -370,7 +368,7 @@ namespace FFFDTD{
 	}
 
 	// 観測面を配置する
-	size_t FFSituation::placeProbePoint(const FFPointObject &object){
+	oindex_t FFSituation::placeProbePoint(const FFPointObject &object){
 		index3_t pos = object.getPos();
 		DIR_e dir = object.getDir();
 		if ((dir == X_PLUS) || (dir == X_MINUS)){
@@ -401,6 +399,16 @@ namespace FFFDTD{
 			throw;
 		}
 		m_ProbePlaneList.push_back(FFPointObject(pos, dir));
+	}
+
+	// ポートを配置する
+	oindex_t FFSituation::placePort(const FFPointObject &object, FFCircuit *circuit){
+		// ポートと同じ場所に観測点を配置する
+		oindex_t probe_point = placeProbePoint(object);
+
+		// ポートに観測点と回路部品を割り当てる
+		m_PortList.push_back(FFPort(circuit));
+		m_PortList.back().attachProbePoint(probe_point);
 	}
 #pragma endregion
 

@@ -2,8 +2,7 @@
 
 #include "FFGrid.h"
 #include "FFMaterial.h"
-#include "FFPointObject.h"
-//#include "Circuit/FFCircuit.h"
+#include "FFPort.h"
 #include "Format/FFVolumeData.h"
 #include "Format/FFBitVolumeData.h"
 #include "Basic/FFIStream.h"
@@ -66,7 +65,7 @@ namespace FFFDTD{
 		std::vector<FFPointObject> m_ProbePlaneList;
 
 		// ポートリスト
-		
+		std::vector<FFPort> m_PortList;
 
 
 
@@ -102,6 +101,11 @@ namespace FFFDTD{
 
 		// 材質リストのすべての材質の物性値が指定されているか調べる
 		bool isMaterialListFilled(void);
+
+		// 材質リストの件数を取得する
+		size_t getNumberOfMaterials(void) const{
+			return m_MaterialList.size();
+		}
 
 		// 指定した材質IDの材質データを取得する
 		const FFMaterial* getMaterialByID(matid_t matid);
@@ -144,6 +148,23 @@ namespace FFFDTD{
 		double getPmlR0(void) const{
 			return m_BC.pmlR0;
 		}
+
+		// 観測点のリストを取得する
+		const std::vector<FFPointObject>& getProbePointList(void) const{
+			return m_ProbePointList;
+		}
+
+		// 観測面のリストを取得する
+		const std::vector<FFPointObject>& getProbePlaneList(void) const{
+			return m_ProbePlaneList;
+		}
+
+		// ポートのリストを取得する
+		const std::vector<FFPort>& getPortList(void) const{
+			return m_PortList;
+		}
+
+
 #pragma endregion
 		
 #pragma region シミュレーション環境を作成するメソッド
@@ -166,10 +187,14 @@ namespace FFFDTD{
 
 
 		// 観測点を配置する
-		size_t placeProbePoint(const FFPointObject &object);
+		oindex_t placeProbePoint(const FFPointObject &object);
 
 		// 観測面を配置する
-		size_t placeProbePoint(const FFPointObject &object);
+		oindex_t placeProbePoint(const FFPointObject &object);
+
+		// ポートを配置する
+		oindex_t placePort(const FFPointObject &object, FFCircuit *circuit);
+
 
 #pragma endregion
 

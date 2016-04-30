@@ -98,9 +98,11 @@
     <ClInclude Include="..\common\Format\FFBitVolumeData.h" />
     <ClInclude Include="..\common\Format\FFSliceData.h" />
     <ClInclude Include="..\common\Format\FFVolumeData.h" />
+    <ClInclude Include="FFCircuit.h" />
     <ClInclude Include="FFGrid.h" />
     <ClInclude Include="FFMaterial.h" />
     <ClInclude Include="FFPointObject.h" />
+    <ClInclude Include="FFPort.h" />
     <ClInclude Include="FFProbePoint.h" />
     <ClInclude Include="FFSituation.h" />
     <ClInclude Include="FFSource.h" />
@@ -113,6 +115,7 @@
     <ClCompile Include="..\common\Format\FFSliceData.cpp" />
     <ClCompile Include="..\common\Format\FFVolumeData.cpp" />
     <ClCompile Include="FFGrid.cpp" />
+    <ClCompile Include="FFPort.cpp" />
     <ClCompile Include="FFSituation.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>

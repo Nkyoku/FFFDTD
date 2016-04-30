@@ -69,6 +69,12 @@
     <ClInclude Include="FFProbePoint.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="FFPort.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="FFCircuit.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -97,6 +103,9 @@
     </ClCompile>
     <ClCompile Include="..\common\Format\FFBitSliceData.cpp">
       <Filter>ソース ファイル\Format</Filter>
+    </ClCompile>
+    <ClCompile Include="FFPort.cpp">
+      <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

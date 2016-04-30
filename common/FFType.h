@@ -81,7 +81,10 @@ namespace FFFDTD{
 	// 符号付き座標インデックス型4次元ベクトル
 	using sindex4_t = i32vec4;
 	
+	// オブジェクトのインデックス型
+	using oindex_t = uint32_t;
 	
+
 
 	// 向き
 	enum DIR_e{

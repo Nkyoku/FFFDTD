@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "FFProbePoint.h"
-#include "FFCircuit.h"
+#include "Circuit/FFCircuit.h"
 
 
 

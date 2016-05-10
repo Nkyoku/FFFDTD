@@ -1,6 +1,7 @@
 ﻿// シミュレータ本体
 
 #include "FFSituation.h"
+#include "Circuit/FFVoltageSourceComponent.h"
 
 #include <stdio.h>
 #include <chrono>
@@ -38,14 +39,14 @@ static std::vector<double> linspace(T start, T end, int n){
 // メイン
 int main(int argc, char *argv[]){
 	// FFSituationの生成
-	FFGrid grid_x = constspace(1.0, 10);
-	FFGrid grid_y = constspace(1.0, 12);
-	FFGrid grid_z = constspace(1.0, 14);
+	FFGrid grid_x = constspace(1.0, 50);
+	FFGrid grid_y = constspace(1.0, 50);
+	FFGrid grid_z = constspace(1.0, 151);
 	BC_t bc = {
 		BoundaryCondition::PML,
 		BoundaryCondition::PML,
 		BoundaryCondition::PML,
-		index3_t(3, 3, 3),
+		index3_t(5, 5, 5),
 		2.0,
 		1e-5
 	};
@@ -60,8 +61,14 @@ int main(int argc, char *argv[]){
 	printf("\tLocalSize   : %d\n", situation.getLocalSize());
 	printf("\tLocalOffset : %d\n", situation.getLocalOffset());
 
-	
-	situation.placeCuboid(10, index3_t(0, 0, 0), index3_t(10, 12, 14));
+	//situation.placeCuboid(10, index3_t(0, 0, 0), index3_t(10, 12, 14));
+	situation.placePECCuboid(index3_t(25, 25, 25), index3_t(25, 25, 101));
+
+	const char diffgauss[] =
+		"var tw := 1.27 / 1.5e+9; \n"
+		"var tmp := 4 * (t - tw) / tw; \n"
+		"return [sqrt(2 * 2.718281828459045) * tmp * exp(-tmp * tmp)];";
+	situation.placePort(FFPointObject(index3_t(25, 25, 75), Z_PLUS), new FFVoltageSourceComponent(new FFWaveform(diffgauss), 50.0));
 
 
 

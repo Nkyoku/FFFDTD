@@ -25,6 +25,12 @@
     <Filter Include="ソース ファイル\Format">
       <UniqueIdentifier>{14032917-d7ae-4ccc-a374-4d5f2b24d6c8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\Circuit">
+      <UniqueIdentifier>{d0335df4-48e0-46d9-8947-4d3ebeab46ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Circuit">
+      <UniqueIdentifier>{3ec3a09f-50b6-4414-8b86-202598161ccc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FFGrid.h">
@@ -72,8 +78,20 @@
     <ClInclude Include="FFPort.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="FFCircuit.h">
+    <ClInclude Include="FFSolver.h">
       <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="FFSolverCPU.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Circuit\FFCircuit.h">
+      <Filter>ヘッダー ファイル\Circuit</Filter>
+    </ClInclude>
+    <ClInclude Include="Circuit\FFWaveform.h">
+      <Filter>ヘッダー ファイル\Circuit</Filter>
+    </ClInclude>
+    <ClInclude Include="Circuit\FFVoltageSourceComponent.h">
+      <Filter>ヘッダー ファイル\Circuit</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -106,6 +124,15 @@
     </ClCompile>
     <ClCompile Include="FFPort.cpp">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="FFSolver.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="FFSolverCPU.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Circuit\FFWaveform.cpp">
+      <Filter>ソース ファイル\Circuit</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

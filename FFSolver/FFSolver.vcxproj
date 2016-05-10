@@ -98,13 +98,17 @@
     <ClInclude Include="..\common\Format\FFBitVolumeData.h" />
     <ClInclude Include="..\common\Format\FFSliceData.h" />
     <ClInclude Include="..\common\Format\FFVolumeData.h" />
-    <ClInclude Include="FFCircuit.h" />
+    <ClInclude Include="Circuit\FFCircuit.h" />
+    <ClInclude Include="Circuit\FFVoltageSourceComponent.h" />
+    <ClInclude Include="Circuit\FFWaveform.h" />
     <ClInclude Include="FFGrid.h" />
     <ClInclude Include="FFMaterial.h" />
     <ClInclude Include="FFPointObject.h" />
     <ClInclude Include="FFPort.h" />
     <ClInclude Include="FFProbePoint.h" />
     <ClInclude Include="FFSituation.h" />
+    <ClInclude Include="FFSolver.h" />
+    <ClInclude Include="FFSolverCPU.h" />
     <ClInclude Include="FFSource.h" />
   </ItemGroup>
   <ItemGroup>
@@ -114,9 +118,15 @@
     <ClCompile Include="..\common\Format\FFBitVolumeData.cpp" />
     <ClCompile Include="..\common\Format\FFSliceData.cpp" />
     <ClCompile Include="..\common\Format\FFVolumeData.cpp" />
+    <ClCompile Include="Circuit\FFWaveform.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/bigobj %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="FFGrid.cpp" />
     <ClCompile Include="FFPort.cpp" />
     <ClCompile Include="FFSituation.cpp" />
+    <ClCompile Include="FFSolver.cpp" />
+    <ClCompile Include="FFSolverCPU.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

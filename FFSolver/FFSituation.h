@@ -3,6 +3,7 @@
 #include "FFGrid.h"
 #include "FFMaterial.h"
 #include "FFPort.h"
+#include "FFSolver.h"
 #include "Format/FFVolumeData.h"
 #include "Format/FFBitVolumeData.h"
 #include "Basic/FFIStream.h"
@@ -31,6 +32,9 @@ namespace FFFDTD{
 
 		/*** メンバー変数 ***/
 	private:
+		// タイムステップ
+		double m_Timestep;
+		
 		// グローバル領域のサイズ
 		index3_t m_Size;
 
@@ -65,7 +69,19 @@ namespace FFFDTD{
 		std::vector<FFPointObject> m_ProbePlaneList;
 
 		// ポートリスト
-		std::vector<FFPort> m_PortList;
+		std::vector<FFPort*> m_PortList;
+
+		// ソルバー
+		FFSolver *m_Solver;
+
+		// 最大ステップ数
+		size_t m_NT;
+
+		// 次のステップ
+		size_t m_IT;
+
+		// 観測面の解析周波数
+		std::vector<double> m_FreqList;
 
 
 
@@ -116,8 +132,13 @@ namespace FFFDTD{
 		// 最適なタイムステップを計算する
 		double calcTimestep(void) const;
 
+		// タイムステップを取得する
+		double getTimestep(void) const{
+			return m_Timestep;
+		}
+
 		// グローバル領域の大きさを取得する
-		const index3_t getGlobalSize(void) const{
+		const index3_t& getGlobalSize(void) const{
 			return m_Size;
 		}
 
@@ -160,9 +181,8 @@ namespace FFFDTD{
 		}
 
 		// ポートのリストを取得する
-		const std::vector<FFPort>& getPortList(void) const{
-			return m_PortList;
-		}
+		std::vector<const FFPort*> getPortList(void) const;
+
 
 
 #pragma endregion
@@ -190,7 +210,7 @@ namespace FFFDTD{
 		oindex_t placeProbePoint(const FFPointObject &object);
 
 		// 観測面を配置する
-		oindex_t placeProbePoint(const FFPointObject &object);
+		oindex_t placeProbePlane(const FFPointObject &object);
 
 		// ポートを配置する
 		oindex_t placePort(const FFPointObject &object, FFCircuit *circuit);
@@ -220,28 +240,36 @@ namespace FFFDTD{
 
 		// Hzに作用する物性値を取得する
 		void getMaterialHz(const index3_t &pos, FFMaterial *material) const;
+#pragma endregion
 
-		/*private:
-		// グローバル座標から配列のインデックスを計算する
-		size_t getIndex(index_t x, index_t y, index_t z) const{
-			return (size_t)x + (size_t)m_Size.x * ((size_t)y + (size_t)m_Size.y * (size_t)(z - m_LocalOffsetZ));
-		}
+#pragma region ソルバーを操作するメソッド
+	public:
+		// ソルバーにシミュレーション環境を構成する
+		void configureSolver(FFSolver *solver, double timestep, size_t max_iteration, const std::vector<double> &measure_freq);
 
-		// グローバル座標から配列のインデックスを計算する
-		size_t getIndex(const index3_t &pos) const{
-			return getIndex(pos.x, pos.y, pos.z);
-		}*/
+
+
+
 #pragma endregion
 
 
 
 
+	private:
+		// X方向の領域の端に別の領域が接続されているか取得する
+		bool isConnectedX(void) const{
+			return m_BC.x == BoundaryCondition::Periodic;
+		}
 
+		// Y方向の領域の端に別の領域が接続されているか取得する
+		bool isConnectedY(void) const{
+			return m_BC.y == BoundaryCondition::Periodic;
+		}
 
-
-
-
-
+		// Z方向の領域の端に別の領域が接続されているか取得する
+		bool isConnectedZ(void) const{
+			return m_ConnectionZ < m_Size.z;
+		}
 
 
 	};

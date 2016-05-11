@@ -97,13 +97,13 @@ namespace FFFDTD{
 	};
 
 	// 軸
-	enum AXIS_e{
-		AXIS_X = 1 << 0,
-		AXIS_Y = 1 << 1,
-		AXIS_Z = 1 << 2
+	enum class Axis{
+		X,
+		Y,
+		Z
 	};
 
-	// 面
+	/*// 面
 	enum PLANE_e{
 		X_PLANE = X_PLUS,	// YZ面
 		Y_PLANE = Y_PLUS,	// XZ面
@@ -116,18 +116,18 @@ namespace FFFDTD{
 		Y_PLANE_MASK = 1 << Y_PLANE,
 		Z_PLANE_MASK = 1 << Z_PLANE,
 		ALL_PLANE_MASK = X_PLANE_MASK | Y_PLANE_MASK | Z_PLANE_MASK
-	};
+	};*/
 
-	// 周波数特性の種類
+	/*// 周波数特性の種類
 	enum FrequencyResponce_e{
 		FR_DFT,		// 離散フーリエ変換
 		FR_ESD,		// エネルギースペクトル密度
 		FR_PSD		// パワースペクトル密度
-	};
+	};*/
 
 
 
-	// 電磁界の周波数成分を格納する構造体
+	/*// 電磁界の周波数成分を格納する構造体
 	struct EMFreq_t{
 		complex E_x;
 		complex E_y;
@@ -145,15 +145,25 @@ namespace FFFDTD{
 		real H_x;
 		real H_y;
 		real H_z;
-	};
+	};*/
 
 	
 	
+	// 電磁界成分の種類
+	enum class EMType{
+		Ex,
+		Ey,
+		Ez,
+		Hx,
+		Hy,
+		Hz
+	};
 	
-	
-	
-	
-	
+	// プローブの種類
+	enum class ProbeType{
+		TD,		// 時間ドメイン
+		FD		// 周波数ドメイン
+	};
 	
 	// 境界条件の種類の定義
 	enum class BoundaryCondition{
@@ -161,9 +171,13 @@ namespace FFFDTD{
 		PML,			// PML境界条件
 		Periodic,		// 周期境界条件
 	};
-
 	
-	
+	// プローブの情報を格納する構造体
+	struct Probe_t{
+		index_t index;
+		index3_t pos;
+		EMType type;
+	};
 
 
 }

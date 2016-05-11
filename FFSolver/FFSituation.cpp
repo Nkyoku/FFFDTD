@@ -15,7 +15,8 @@ namespace FFFDTD{
 		, m_BC()
 		, m_Volume(), m_PECX(), m_PECY(), m_PECZ()
 		, m_MaterialList()
-		, m_ProbePointList(), m_ProbePlaneList(), m_PortList()
+		, m_PortList()
+		, m_TDProbeList(), m_FDProbeList()
 		, m_Solver(nullptr)
 		, m_NT(0), m_IT(0)
 		, m_FreqList()
@@ -99,6 +100,8 @@ namespace FFFDTD{
 		m_PECZ.createSlices(m_LocalOffsetZ, m_LocalOffsetZ + m_LocalSizeZ - 1, false);
 		if (isConnectedZ()){
 			m_Volume.createSlices(m_ConnectionZ, m_ConnectionZ, MATID_PEC);
+			m_PECX.createSlices(m_ConnectionZ, m_ConnectionZ, false);
+			m_PECY.createSlices(m_ConnectionZ, m_ConnectionZ, false);
 		}
 	}
 #pragma endregion
@@ -183,11 +186,11 @@ namespace FFFDTD{
 	}
 
 	// 境界条件を取得する
-	BoundaryCondition FFSituation::getBC(AXIS_e axis) const{
-		if (axis == AXIS_X){
+	BoundaryCondition FFSituation::getBC(Axis axis) const{
+		if (axis == Axis::X){
 			return m_BC.x;
 		}
-		else if (axis == AXIS_Y){
+		else if (axis == Axis::Y){
 			return m_BC.y;
 		}
 		else{
@@ -343,7 +346,7 @@ namespace FFFDTD{
 	m_MaterialList[0] = new FFMaterial();
 	}*/
 
-	// 観測点を配置する
+	/*// 観測点を配置する
 	oindex_t FFSituation::placeProbePoint(const FFPointObject &object){
 		index3_t pos = object.getPos();
 		DIR_e dir = object.getDir();
@@ -420,18 +423,138 @@ namespace FFFDTD{
 		}
 		m_ProbePlaneList.push_back(FFPointObject(pos, dir));
 		return (oindex_t)(m_ProbePlaneList.size() - 1);
-	}
+	}*/
 
 	// ポートを配置する
-	oindex_t FFSituation::placePort(const FFPointObject &object, FFCircuit *circuit){
-		// ポートと同じ場所に観測点を配置する
-		oindex_t probe_point = placeProbePoint(object);
+	oindex_t FFSituation::placePort(const index3_t &pos_, DIR_e dir, FFCircuit *circuit){
+		// ポートが計算領域に含まれるか調べる
+		bool out_of_bounding, out_of_local;
+		index3_t pos;
+		if ((dir == X_PLUS) || (dir == X_MINUS)){
+			pos.x = pos_.x;
+			pos.y = (pos_.y != 0) ? pos_.y : m_Size.y;
+			pos.z = (pos_.z != 0) ? pos_.z : m_Size.z;
+			out_of_bounding  = (m_Size.x <= pos.x);
+			out_of_bounding |= isConnectedY() ? (m_Size.y < pos.y) : (m_Size.y <= pos.y);
+			out_of_bounding |= isConnectedZ() ? (m_Size.z < pos.z) : (m_Size.z <= pos.z);
+			out_of_local = (pos.z <= m_LocalOffsetZ) || (isConnectedZ() ? ((m_LocalOffsetZ + m_LocalSizeZ) < pos.z) : ((m_LocalOffsetZ + m_LocalSizeZ) <= pos.z));
+		}
+		else if ((dir == Y_PLUS) || (dir == Y_MINUS)){
+			pos.x = (pos_.x != 0) ? pos_.x : m_Size.x;
+			pos.y = pos_.y;
+			pos.z = (pos_.z != 0) ? pos_.z : m_Size.z;
+			out_of_bounding  = isConnectedX() ? (m_Size.x < pos.x) : (m_Size.x <= pos.x);
+			out_of_bounding |= (m_Size.y <= pos.y);
+			out_of_bounding |= isConnectedZ() ? (m_Size.z < pos.z) : (m_Size.z <= pos.z);
+			out_of_local = (pos.z <= m_LocalOffsetZ) || (isConnectedZ() ? ((m_LocalOffsetZ + m_LocalSizeZ) < pos.z) : ((m_LocalOffsetZ + m_LocalSizeZ) <= pos.z));
+		}
+		else if ((dir == Z_PLUS) || (dir == Z_MINUS)){
+			pos.x = (pos_.x != 0) ? pos_.x : m_Size.x;
+			pos.y = (pos_.y != 0) ? pos_.y : m_Size.y;
+			pos.z = pos_.z;
+			out_of_bounding  = isConnectedX() ? (m_Size.x < pos.x) : (m_Size.x <= pos.x);
+			out_of_bounding |= isConnectedY() ? (m_Size.y < pos.y) : (m_Size.y <= pos.y);
+			out_of_bounding |= (m_Size.z <= pos.z);
+			out_of_local = (pos.z < m_LocalOffsetZ) || ((m_LocalOffsetZ + m_LocalSizeZ) <= pos.z);
+		}
+		else{
+			throw;
+		}
+		if (out_of_bounding == true){
+			throw;
+		}
 
-		// ポートに観測点と回路部品を割り当てる
-		FFPort *port = new FFPort(circuit);
-		port->attachProbePoint(probe_point);
-		m_PortList.push_back(port);
+		if (out_of_local == false){
+			// ポートを作成する
+			FFPort *port = new FFPort(circuit);
+			double sign = ((dir == X_PLUS) || (dir == Y_PLUS) || (dir == Z_PLUS)) ? 1.0 : -1.0;
+			if ((dir == X_PLUS) || (dir == X_MINUS)){
+				port->attachEProbe(placeProbe(pos, EMType::Ex, ProbeType::TD), sign * m_GridX.iwidth(pos.x));
+				port->attachMProbe(placeProbe(index3_t(pos.x, pos.y, pos.z), EMType::Hz, ProbeType::TD), sign * m_GridZ.mwidth(pos.z));
+				port->attachMProbe(placeProbe(index3_t(pos.x, pos.y - 1, pos.z), EMType::Hz, ProbeType::TD), -sign * m_GridZ.mwidth(pos.z));
+				port->attachMProbe(placeProbe(index3_t(pos.x, pos.y, pos.z), EMType::Hy, ProbeType::TD), -sign * m_GridY.mwidth(pos.y));
+				port->attachMProbe(placeProbe(index3_t(pos.x, pos.y, pos.z - 1), EMType::Hy, ProbeType::TD), sign * m_GridY.mwidth(pos.y));
+			}
+			else if ((dir == Y_PLUS) || (dir == Y_MINUS)){
+				port->attachEProbe(placeProbe(pos, EMType::Ey, ProbeType::TD), sign * m_GridY.iwidth(pos.y));
+				port->attachMProbe(placeProbe(index3_t(pos.x, pos.y, pos.z), EMType::Hx, ProbeType::TD), sign * m_GridX.mwidth(pos.x));
+				port->attachMProbe(placeProbe(index3_t(pos.x, pos.y, pos.z - 1), EMType::Hx, ProbeType::TD), -sign * m_GridX.mwidth(pos.x));
+				port->attachMProbe(placeProbe(index3_t(pos.x, pos.y, pos.z), EMType::Hz, ProbeType::TD), -sign * m_GridZ.mwidth(pos.z));
+				port->attachMProbe(placeProbe(index3_t(pos.x - 1, pos.y, pos.z), EMType::Hz, ProbeType::TD), sign * m_GridZ.mwidth(pos.z));
+			}
+			else if ((dir == Z_PLUS) || (dir == Z_MINUS)){
+				port->attachEProbe(placeProbe(pos, EMType::Ez, ProbeType::TD), sign * m_GridZ.iwidth(pos.z));
+				port->attachMProbe(placeProbe(index3_t(pos.x, pos.y, pos.z), EMType::Hy, ProbeType::TD), sign * m_GridY.mwidth(pos.y));
+				port->attachMProbe(placeProbe(index3_t(pos.x - 1, pos.y, pos.z - 1), EMType::Hy, ProbeType::TD), -sign * m_GridY.mwidth(pos.y));
+				port->attachMProbe(placeProbe(index3_t(pos.x, pos.y, pos.z), EMType::Hx, ProbeType::TD), -sign * m_GridX.mwidth(pos.x));
+				port->attachMProbe(placeProbe(index3_t(pos.x, pos.y - 1, pos.z), EMType::Hx, ProbeType::TD), sign * m_GridX.mwidth(pos.x));
+			}
+			m_PortList.push_back(port);
+		}
+		else{
+			// ポートを欠番とする
+			m_PortList.push_back(nullptr);
+		}
 		return (oindex_t)(m_PortList.size() - 1);
+	}
+
+	// プローブを配置する
+	oindex_t FFSituation::placeProbe(const index3_t &pos, EMType em_type, ProbeType probe_type){
+		// プローブの位置をチェックする
+		switch (em_type){
+		case EMType::Ex:
+			if ((m_Size.x <= pos.x) || (m_Size.y < pos.y) || (pos.z < m_LocalOffsetZ) || ((m_LocalOffsetZ + m_LocalSizeZ) < pos.z)){
+				throw;
+			}
+			break;
+
+		case EMType::Ey:
+			if ((m_Size.x < pos.x) || (m_Size.y <= pos.y) || (pos.z < m_LocalOffsetZ) || ((m_LocalOffsetZ + m_LocalSizeZ) < pos.z)){
+				throw;
+			}
+			break;
+
+		case EMType::Ez:
+			if ((m_Size.x < pos.x) || (m_Size.y < pos.y) || (pos.z < m_LocalOffsetZ) || ((m_LocalOffsetZ + m_LocalSizeZ) <= pos.z)){
+				throw;
+			}
+			break;
+
+		case EMType::Hx:
+			if ((m_Size.x < pos.x) || (m_Size.y <= pos.y) || (pos.z < m_LocalOffsetZ) || ((m_LocalOffsetZ + m_LocalSizeZ) <= pos.z)){
+				throw;
+			}
+			break;
+
+		case EMType::Hy:
+			if ((m_Size.x <= pos.x) || (m_Size.y < pos.y) || (pos.z < m_LocalOffsetZ) || ((m_LocalOffsetZ + m_LocalSizeZ) <= pos.z)){
+				throw;
+			}
+			break;
+
+		case EMType::Hz:
+			if ((m_Size.x <= pos.x) || (m_Size.y <= pos.y) || (pos.z < m_LocalOffsetZ) || ((m_LocalOffsetZ + m_LocalSizeZ) < pos.z)){
+				throw;
+			}
+			break;
+		};
+
+		// リストに追加する
+		Probe_t probe;
+		probe.index = pos.x + (m_Size.x + 1) * (pos.y + (m_Size.y + 1) * (pos.z - m_LocalOffsetZ));
+		probe.pos = pos;
+		probe.type = em_type;
+		if (probe_type == ProbeType::TD){
+			m_TDProbeList.push_back(probe);
+			return (oindex_t)(m_TDProbeList.size() - 1);
+		}
+		else if (probe_type == ProbeType::FD){
+			m_FDProbeList.push_back(probe);
+			return (oindex_t)(m_FDProbeList.size() - 1);
+		}
+		else{
+			throw;
+		}
 	}
 #pragma endregion
 
@@ -547,32 +670,20 @@ namespace FFFDTD{
 		const size_t NF = measure_freq.size();
 
 		// 解析空間の大きさを計算する
-		index_t Nx = m_Size.x + (isConnectedX() ? 1 : 0);
-		index_t Ny = m_Size.y + (isConnectedY() ? 1 : 0);
-		index_t Nz = m_LocalSizeZ + (isConnectedZ() ? 1 : 0);
-		index_t Mx = Nx - 1, My = Ny, Mz = Nz;
+		index_t Mx = m_Size.x + (isConnectedX() ? 1 : 0);
+		index_t My = m_Size.y + (isConnectedY() ? 1 : 0);
+		index_t Mz = m_LocalSizeZ + (isConnectedZ() ? 1 : 0);
+		index_t Nx = Mx + 1, Ny = My + 1, Nz = Mz + 1;
 		index_t Lx = m_BC.pmlL.x, Ly = m_BC.pmlL.y, Lz = m_BC.pmlL.z;
 
 		// ソルバーにメモリーを確保させる
-		solver->initializeMemory(Nx, Ny, Nz);
-
-		// 計算領域を計算する
-		/*m_StartMx = m_L.x;
-		m_StartNx = m_L.x + 1;
-		m_StartMy = m_L.y;
-		m_StartNy = m_L.y + 1;
-		m_StartMz = m_L.z;
-		m_StartNz = m_L.z + 1;
-		m_RangeMx = m_M.x;
-		m_RangeNx = m_M.x;
-		m_RangeMy = m_M.y;
-		m_RangeNy = m_M.y;
-		m_RangeMz = m_M.z;
-		m_RangeNz = m_M.z;*/
+		index_t z_start = (m_LocalOffsetZ < Lz) ? (Lz - m_LocalOffsetZ) : 0;
+		index_t z_end = std::min(m_LocalSizeZ, m_Size.z - Lz - m_LocalOffsetZ);
+		solver->initializeMemory(index3_t(Mx, My, Mz), index3_t(Lx, Ly, z_start), index3_t(Mx - 2 * Lx, My - 2 * Ly, z_end - z_start));
 
 		// 係数リスト
-		std::vector<rvec2> coef2_list(1, rvec2(0.0f, 0.0f));
-		std::vector<rvec3> coef3_list(1, rvec3(0.0f, 0.0f, 0.0f));
+		std::vector<rvec2> coef2_list(1, rvec2(0.0, 0.0));
+		std::vector<rvec3> coef3_list(1, rvec3(0.0, 0.0, 0.0));
 		const cindex_t pec_id = 0;
 
 		// 2組係数を登録する関数
@@ -630,12 +741,12 @@ namespace FFFDTD{
 				std::vector<cindex_t> normal_cindex(Nx * Ny * Nz, pec_id);
 				std::vector<cindex2_t> pml_cindex;
 				std::vector<index_t> pml_index;
-				for (index_t ilz = 1; ilz < Nz; ilz++){
+				for (index_t ilz = 1; ilz <= m_LocalSizeZ; ilz++){
 					index_t iz = m_LocalOffsetZ + ilz;
 					for (index_t iy = 1; iy < Ny; iy++){
 						for (index_t ix = 0; ix < Mx; ix++){
 							double dy = m_GridY.mwidth(iy);
-							double dz = m_GridY.mwidth(iz);
+							double dz = m_GridZ.mwidth(iz);
 							FFMaterial mat;
 							bool pec = getMaterialEx(index3_t(ix, iy, iz), &mat);
 							bool inside_pml =
@@ -661,7 +772,7 @@ namespace FFFDTD{
 				}
 
 #pragma omp critical
-				m_Solver->storeCoefficientIndex(FFSolver::COEF_EX, normal_cindex, pml_cindex, pml_index);
+				m_Solver->storeCoefficientIndex(EMType::Ex, normal_cindex, pml_cindex, pml_index);
 			}
 
 			// Dy,Eyに対する係数を計算する
@@ -670,7 +781,7 @@ namespace FFFDTD{
 				std::vector<cindex_t> normal_cindex(Nx * Ny * Nz, pec_id);
 				std::vector<cindex2_t> pml_cindex;
 				std::vector<index_t> pml_index;
-				for (index_t ilz = 1; ilz < Nz; ilz++){
+				for (index_t ilz = 1; ilz <= m_LocalSizeZ; ilz++){
 					index_t iz = m_LocalOffsetZ + ilz;
 					for (index_t iy = 0; iy < My; iy++){
 						for (index_t ix = 1; ix < Nx; ix++){
@@ -701,7 +812,7 @@ namespace FFFDTD{
 				}
 
 #pragma omp critical
-				m_Solver->storeCoefficientIndex(FFSolver::COEF_EY, normal_cindex, pml_cindex, pml_index);
+				m_Solver->storeCoefficientIndex(EMType::Ey, normal_cindex, pml_cindex, pml_index);
 			}
 
 			// Dz,Ezに対する係数を計算する
@@ -710,7 +821,7 @@ namespace FFFDTD{
 				std::vector<cindex_t> normal_cindex(Nx * Ny * Nz, pec_id);
 				std::vector<cindex2_t> pml_cindex;
 				std::vector<index_t> pml_index;
-				for (index_t ilz = 0; ilz < Mz; ilz++){
+				for (index_t ilz = 0; ilz < m_LocalSizeZ; ilz++){
 					index_t iz = m_LocalOffsetZ + ilz;
 					for (index_t iy = 1; iy < Ny; iy++){
 						for (index_t ix = 1; ix < Nx; ix++){
@@ -741,7 +852,7 @@ namespace FFFDTD{
 				}
 
 #pragma omp critical
-				m_Solver->storeCoefficientIndex(FFSolver::COEF_EZ, normal_cindex, pml_cindex, pml_index);
+				m_Solver->storeCoefficientIndex(EMType::Ez, normal_cindex, pml_cindex, pml_index);
 			}
 
 			// Hxに対する係数を計算する
@@ -750,7 +861,7 @@ namespace FFFDTD{
 				std::vector<cindex_t> normal_cindex(Nx * Ny * Nz, pec_id);
 				std::vector<cindex2_t> pml_cindex;
 				std::vector<index_t> pml_index;
-				for (index_t ilz = 1; ilz < Mz; ilz++){
+				for (index_t ilz = 0; ilz < m_LocalSizeZ; ilz++){
 					index_t iz = m_LocalOffsetZ + ilz;
 					for (index_t iy = 0; iy < My; iy++){
 						for (index_t ix = 1; ix < Nx; ix++){
@@ -778,7 +889,7 @@ namespace FFFDTD{
 				}
 
 #pragma omp critical
-				m_Solver->storeCoefficientIndex(FFSolver::COEF_HX, normal_cindex, pml_cindex, pml_index);
+				m_Solver->storeCoefficientIndex(EMType::Hx, normal_cindex, pml_cindex, pml_index);
 			}
 
 			// Hyに対する係数を計算する
@@ -787,10 +898,10 @@ namespace FFFDTD{
 				std::vector<cindex_t> normal_cindex(Nx * Ny * Nz, pec_id);
 				std::vector<cindex2_t> pml_cindex;
 				std::vector<index_t> pml_index;
-				for (index_t ilz = 1; ilz < Mz; ilz++){
+				for (index_t ilz = 0; ilz < m_LocalSizeZ; ilz++){
 					index_t iz = m_LocalOffsetZ + ilz;
-					for (index_t iy = 0; iy < Ny; iy++){
-						for (index_t ix = 1; ix < Mx; ix++){
+					for (index_t iy = 1; iy < Ny; iy++){
+						for (index_t ix = 0; ix < Mx; ix++){
 							double dz = m_GridZ.width(iz);
 							double dx = m_GridX.width(ix);
 							FFMaterial mat;
@@ -815,7 +926,7 @@ namespace FFFDTD{
 				}
 				
 #pragma omp critical
-				m_Solver->storeCoefficientIndex(FFSolver::COEF_HY, normal_cindex, pml_cindex, pml_index);
+				m_Solver->storeCoefficientIndex(EMType::Hy, normal_cindex, pml_cindex, pml_index);
 			}
 
 			// Hzに対する係数を計算する
@@ -824,10 +935,10 @@ namespace FFFDTD{
 				std::vector<cindex_t> normal_cindex(Nx * Ny * Nz, pec_id);
 				std::vector<cindex2_t> pml_cindex;
 				std::vector<index_t> pml_index;
-				for (index_t ilz = 1; ilz < Nz; ilz++){
+				for (index_t ilz = 1; ilz <= m_LocalSizeZ; ilz++){
 					index_t iz = m_LocalOffsetZ + ilz;
 					for (index_t iy = 0; iy < My; iy++){
-						for (index_t ix = 1; ix < Mx; ix++){
+						for (index_t ix = 0; ix < Mx; ix++){
 							double dx = m_GridX.width(ix);
 							double dy = m_GridY.width(iy);
 							FFMaterial mat;
@@ -852,19 +963,16 @@ namespace FFFDTD{
 				}
 				
 #pragma omp critical
-				m_Solver->storeCoefficientIndex(FFSolver::COEF_HZ, normal_cindex, pml_cindex, pml_index);
+				m_Solver->storeCoefficientIndex(EMType::Hz, normal_cindex, pml_cindex, pml_index);
 			}
 		}
 
 		// 係数リストをコピーする
 		m_Solver->storeCoefficientList(coef2_list, coef3_list);
 		
-
-
-
-
-
-
+		// 観測点・観測面・ポートの情報をコピーする
+		m_Solver->storeMeasurementInfo(m_FreqList, m_NT, m_TDProbeList, m_FDProbeList);
+		m_Solver->storePortList(m_PortList);
 	}
 
 

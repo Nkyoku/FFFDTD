@@ -1,6 +1,7 @@
 ﻿// シミュレータ本体
 
 #include "FFSituation.h"
+#include "FFSolverCPU.h"
 #include "Circuit/FFVoltageSourceComponent.h"
 
 #include <stdio.h>
@@ -52,7 +53,7 @@ int main(int argc, char *argv[]){
 	};
 	FFSituation situation;
 	situation.setGrids(grid_x, grid_y, grid_z, bc);
-	situation.setDivision(0, 14);
+	situation.setDivision(0, 151);
 	situation.createVolumeData();
 
 	index3_t global_size = situation.getGlobalSize();
@@ -61,14 +62,20 @@ int main(int argc, char *argv[]){
 	printf("\tLocalSize   : %d\n", situation.getLocalSize());
 	printf("\tLocalOffset : %d\n", situation.getLocalOffset());
 
-	//situation.placeCuboid(10, index3_t(0, 0, 0), index3_t(10, 12, 14));
-	situation.placePECCuboid(index3_t(25, 25, 25), index3_t(25, 25, 101));
+	situation.initializeMaterialList(0);
+	matid_t matid = situation.registerMaterial(new FFMaterial());
+	situation.placeCuboid(matid, index3_t(0, 0, 0), index3_t(50, 50, 151));
+	situation.placePECCuboid(index3_t(25, 25, 25), index3_t(25, 25, 126));
 
 	const char diffgauss[] =
 		"var tw := 1.27 / 1.5e+9; \n"
 		"var tmp := 4 * (t - tw) / tw; \n"
 		"return [sqrt(2 * 2.718281828459045) * tmp * exp(-tmp * tmp)];";
-	situation.placePort(FFPointObject(index3_t(25, 25, 75), Z_PLUS), new FFVoltageSourceComponent(new FFWaveform(diffgauss), 50.0));
+	situation.placePort(index3_t(25, 25, 75), Z_PLUS, new FFVoltageSourceComponent(new FFWaveform(diffgauss), 50.0));
+
+	FFSolverCPU *solver = FFSolverCPU::createSolver();
+	std::vector<double> freq_list = linspace(75e6, 3e9, 100);
+	situation.configureSolver(solver, situation.calcTimestep(), 1000, freq_list);
 
 
 

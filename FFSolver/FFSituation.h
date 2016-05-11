@@ -30,6 +30,23 @@ namespace FFFDTD{
 
 
 
+		/*** 定義 ***/
+	public:
+		/*// 観測点の情報
+		struct PROBEPOINT_t{
+			FFPointObject object;	// 観測点の位置
+			double h_width1;		// 観測点の周りの磁界セルの長さ1
+			double h_width2;		// 観測点の周りの磁界セルの長さ2
+			double e_iwidth;		// 観測点の電界セルの長さの逆数
+		};
+
+		// 観測面の情報
+		struct PROBEPLANE_t{
+			FFPointObject object;	// 観測点の位置
+		};*/
+
+
+
 		/*** メンバー変数 ***/
 	private:
 		// タイムステップ
@@ -63,13 +80,19 @@ namespace FFFDTD{
 		std::vector<FFMaterial*> m_MaterialList;
 
 		// 観測点リスト(電界成分の位置)
-		std::vector<FFPointObject> m_ProbePointList;
+		//std::vector<FFPointObject> m_ProbePointList;
 
 		// 観測面リスト(磁界成分の位置)
-		std::vector<FFPointObject> m_ProbePlaneList;
+		//std::vector<FFPointObject> m_ProbePlaneList;
 
 		// ポートリスト
 		std::vector<FFPort*> m_PortList;
+
+		// 時間ドメインプローブのリスト
+		std::vector<Probe_t> m_TDProbeList;
+
+		// 周波数ドメインプローブのリスト
+		std::vector<Probe_t> m_FDProbeList;
 
 		// ソルバー
 		FFSolver *m_Solver;
@@ -153,7 +176,7 @@ namespace FFFDTD{
 		}
 
 		// 境界条件を取得する
-		BoundaryCondition getBC(AXIS_e axis) const;
+		BoundaryCondition getBC(Axis axis) const;
 
 		// PML吸収境界条件の層数を取得する
 		const index3_t& getPmlL(void) const{
@@ -170,7 +193,7 @@ namespace FFFDTD{
 			return m_BC.pmlR0;
 		}
 
-		// 観測点のリストを取得する
+		/*// 観測点のリストを取得する
 		const std::vector<FFPointObject>& getProbePointList(void) const{
 			return m_ProbePointList;
 		}
@@ -178,7 +201,7 @@ namespace FFFDTD{
 		// 観測面のリストを取得する
 		const std::vector<FFPointObject>& getProbePlaneList(void) const{
 			return m_ProbePlaneList;
-		}
+		}*/
 
 		// ポートのリストを取得する
 		std::vector<const FFPort*> getPortList(void) const;
@@ -204,18 +227,22 @@ namespace FFFDTD{
 		// ボリュームデータとPECデータを現在のグリッド設定から作成する
 		//void createVolumeAndPECDataFromGrid(void);
 
+		
+
 
 
 		// 観測点を配置する
-		oindex_t placeProbePoint(const FFPointObject &object);
+		//oindex_t placeProbePoint(const FFPointObject &object);
 
 		// 観測面を配置する
-		oindex_t placeProbePlane(const FFPointObject &object);
+		//oindex_t placeProbePlane(const FFPointObject &object);
 
 		// ポートを配置する
-		oindex_t placePort(const FFPointObject &object, FFCircuit *circuit);
+		oindex_t placePort(const index3_t &pos, DIR_e dir, FFCircuit *circuit);
 
-
+	private:
+		// プローブを配置する
+		oindex_t placeProbe(const index3_t &pos, EMType em_type, ProbeType probe_type);
 #pragma endregion
 
 #pragma region 係数を計算するメソッド

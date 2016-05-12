@@ -61,7 +61,7 @@ namespace FFFDTD{
 		void storeCoefficientList(const std::vector<rvec2> &coef2_list, const std::vector<rvec3> &coef3_list) override;
 
 		// 給電と観測を行う
-		void feedAndMeasure(void) override;
+		void feedAndMeasure(size_t n) override;
 
 		// 電界を計算する
 		void calcEField(void) override;
@@ -69,6 +69,24 @@ namespace FFFDTD{
 		// 磁界を計算する
 		void calcHField(void) override;
 
+		// 端部の電界を交換する
+		void exchangeEdgeE(Axis axis) override;
+
+		// 端部の磁界を交換する
+		void exchangeEdgeH(Axis axis) override;
+
+		// Z端部の電界を取得する
+		void getEdgeE(std::vector<real> *top_ex, std::vector<real> *top_ey, std::vector<real> *bottom_ez) const override;
+
+		// Z端部の電界を設定する
+		void setEdgeE(const std::vector<real> *bottom_ex, const std::vector<real> *bottom_ey, const std::vector<real> *top_ez) override;
+
+		// Z端部の磁界を取得する
+		void getEdgeH(std::vector<real> *bottom_hx, std::vector<real> *bottom_hy, std::vector<real> *top_hz) const override;
+
+		// Z端部の磁界を設定する
+		void setEdgeH(const std::vector<real> *top_hx, const std::vector<real> *top_hy, const std::vector<real> *bottom_hz) override;
+		
 	protected:
 		// 時間ドメインプローブの位置の電磁界を励振する
 		void setTDProbeValue(oindex_t id, real value) override;

@@ -20,6 +20,7 @@ namespace FFFDTD{
 
 	// 電磁界成分を格納するメモリーを確保し初期化する
 	void FFSolver::initializeMemory(const index3_t &size, const index3_t &normal_offset, const index3_t &normal_size){
+		m_Size = size;
 		m_StartM.x = normal_offset.x;
 		m_StartN.x = normal_offset.x + 1;
 		m_StartM.y = normal_offset.y;

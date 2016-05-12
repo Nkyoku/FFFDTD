@@ -103,7 +103,7 @@ namespace FFFDTD{
 		// 次のステップ
 		size_t m_IT;
 
-		// 観測面の解析周波数
+		// 周波数ドメインプローブの解析周波数
 		std::vector<double> m_FreqList;
 
 
@@ -274,7 +274,8 @@ namespace FFFDTD{
 		// ソルバーにシミュレーション環境を構成する
 		void configureSolver(FFSolver *solver, double timestep, size_t max_iteration, const std::vector<double> &measure_freq);
 
-
+		// 計算を1ステップ進める
+		size_t stepSolver(int bottom_rank = -1, int top_rank = -1);
 
 
 #pragma endregion

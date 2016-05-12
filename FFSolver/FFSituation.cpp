@@ -2,6 +2,7 @@
 #include "FFConst.h"
 #include <algorithm>
 #include <iterator>
+#include <mpi.h>
 
 
 
@@ -975,7 +976,85 @@ namespace FFFDTD{
 		m_Solver->storePortList(m_PortList);
 	}
 
+	// 計算を1ステップ進める
+	size_t FFSituation::stepSolver(int bottom_rank, int top_rank){
+		if (m_Solver == nullptr){
+			throw;
+		}
+		if (m_NT <= m_IT){
+			throw;
+		}
 
+		// 給電・計測を行う
+		m_Solver->feedAndMeasure(m_IT);
+		m_IT++;
+
+		if (m_IT < m_NT){
+			// 磁界を計算する
+			m_Solver->calcHField();
+
+			// 端部の磁界を送受信
+			if (isConnectedX()){
+				m_Solver->exchangeEdgeH(Axis::X);
+			}
+			if (isConnectedY()){
+				m_Solver->exchangeEdgeH(Axis::Y);
+			}
+			if (isConnectedZ()){
+				if (m_LocalSizeZ == m_Size.z){
+					m_Solver->exchangeEdgeH(Axis::Z);
+				}
+				else{
+					/*std::vector<real> t_hx, t_hy, t_hz;
+					m_Solver->getEdgeH(nullptr, nullptr, &t_hz);
+					m_Solver->getEdgeH(&t_hx, &t_hy, nullptr);
+					std::vector<real> r_hx(t_hx.size()), r_hy(t_hy.size()), r_hz(t_hz.size());
+					MPI_Request req[6];
+					MPI_Status status[6];
+					int result_t_hx = MPI_Isend(t_hx.data(), (int)t_hx.size(), MPI_FLOAT, bottom_rank, (int)MPITag::Hx, MPI_COMM_WORLD, &req[0]);
+					int result_t_hy = MPI_Isend(t_hy.data(), (int)t_hy.size(), MPI_FLOAT, bottom_rank, (int)MPITag::Hy, MPI_COMM_WORLD, &req[1]);
+					int result_t_hz = MPI_Isend(t_hz.data(), (int)t_hz.size(), MPI_FLOAT, top_rank, (int)MPITag::Hz, MPI_COMM_WORLD, &req[2]);
+					int result_r_hx = MPI_Irecv(r_hx.data(), (int)r_hx.size(), MPI_FLOAT, top_rank, (int)MPITag::Hx, MPI_COMM_WORLD, &req[3]);
+					int result_r_hy = MPI_Irecv(r_hy.data(), (int)r_hy.size(), MPI_FLOAT, top_rank, (int)MPITag::Hy, MPI_COMM_WORLD, &req[4]);
+					int result_r_hz = MPI_Irecv(r_hz.data(), (int)r_hz.size(), MPI_FLOAT, bottom_rank, (int)MPITag::Hz, MPI_COMM_WORLD, &req[5]);
+					int result_wait = MPI_Waitall(sizeof(req) / sizeof(int), req, status);*/
+				}
+			}
+
+			// 電界を計算する
+			m_Solver->calcEField();
+
+			// 端部の電界を送受信
+			if (isConnectedX()){
+				m_Solver->exchangeEdgeE(Axis::X);
+			}
+			if (isConnectedY()){
+				m_Solver->exchangeEdgeE(Axis::Y);
+			}
+			if (isConnectedZ()){
+				if (m_LocalSizeZ == m_Size.z){
+					m_Solver->exchangeEdgeE(Axis::Z);
+				}
+				else{
+					/*std::vector<real> t_ex, t_ey, t_ez;
+					m_Solver->getEdgeE(nullptr, nullptr, &t_ez);
+					m_Solver->getEdgeE(&t_ex, &t_ey, nullptr);
+					std::vector<real> r_ex(t_ex.size()), r_ey(t_ey.size()), r_ez(t_ez.size());
+					MPI_Request req[6];
+					MPI_Status status[6];
+					int result_t_ex = MPI_Isend(t_ex.data(), (int)t_ex.size(), MPI_FLOAT, top_rank, (int)MPITag::Ex, MPI_COMM_WORLD, &req[0]);
+					int result_t_ey = MPI_Isend(t_ey.data(), (int)t_ey.size(), MPI_FLOAT, top_rank, (int)MPITag::Ey, MPI_COMM_WORLD, &req[1]);
+					int result_t_ez = MPI_Isend(t_ez.data(), (int)t_ez.size(), MPI_FLOAT, bottom_rank, (int)MPITag::Ez, MPI_COMM_WORLD, &req[2]);
+					int result_r_ex = MPI_Irecv(r_ex.data(), (int)r_ex.size(), MPI_FLOAT, bottom_rank, (int)MPITag::Ex, MPI_COMM_WORLD, &req[3]);
+					int result_r_ey = MPI_Irecv(r_ey.data(), (int)r_ey.size(), MPI_FLOAT, bottom_rank, (int)MPITag::Ey, MPI_COMM_WORLD, &req[4]);
+					int result_r_ez = MPI_Irecv(r_ez.data(), (int)r_ez.size(), MPI_FLOAT, top_rank, (int)MPITag::Ez, MPI_COMM_WORLD, &req[5]);
+					int result_wait = MPI_Waitall(sizeof(req) / sizeof(int), req, status);*/
+				}
+			}
+		}
+
+		return m_IT;
+	}
 
 
 #pragma endregion

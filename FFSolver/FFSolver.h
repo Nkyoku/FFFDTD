@@ -91,13 +91,31 @@ namespace FFFDTD{
 
 
 		// 給電と観測を行う
-		virtual void feedAndMeasure(void) = 0;
+		virtual void feedAndMeasure(size_t n) = 0;
 
 		// 電界を計算する
 		virtual void calcEField(void) = 0;
 
 		// 磁界を計算する
 		virtual void calcHField(void) = 0;
+
+		// 端部の電界を交換する
+		virtual void exchangeEdgeE(Axis axis) = 0;
+
+		// 端部の磁界を交換する
+		virtual void exchangeEdgeH(Axis axis) = 0;
+
+		// Z端部の電界を取得する
+		virtual void getEdgeE(std::vector<real> *top_ex, std::vector<real> *top_ey, std::vector<real> *bottom_ez) const = 0;
+		
+		// Z端部の電界を設定する
+		virtual void setEdgeE(const std::vector<real> *bottom_ex, const std::vector<real> *bottom_ey, const std::vector<real> *top_ez) = 0;
+
+		// Z端部の磁界を取得する
+		virtual void getEdgeH(std::vector<real> *bottom_hx, std::vector<real> *bottom_hy, std::vector<real> *top_hz) const = 0;
+
+		// Z端部の磁界を設定する
+		virtual void setEdgeH(const std::vector<real> *top_hx, const std::vector<real> *top_hy, const std::vector<real> *bottom_hz) = 0;
 
 	protected:
 		// プローブの観測値を取得する

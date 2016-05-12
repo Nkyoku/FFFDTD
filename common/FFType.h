@@ -179,5 +179,20 @@ namespace FFFDTD{
 		EMType type;
 	};
 
+	// MPIタグ
+	enum class MPITag{
+		Ex,
+		Ey,
+		Ez,
+		Hx,
+		Hy,
+		Hz,
+		
+
+
+	};
+
+
+
 
 }

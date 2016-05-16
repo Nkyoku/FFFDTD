@@ -76,20 +76,25 @@ int main(int argc, char *argv[]){
 		printf("\tLocalOffset : %d\n", situation.getLocalOffset());
 
 		situation.initializeMaterialList(0);
-		matid_t matid = situation.registerMaterial(new FFMaterial());
-		situation.placeCuboid(matid, index3_t(0, 0, 0), index3_t(50, 50, 151));
 		situation.placePECCuboid(index3_t(25, 25, 25), index3_t(25, 25, 126));
 
 		const char diffgauss[] =
 			"var tw := 1.27 / 1.5e+9; \n"
 			"var tmp := 4 * (t - tw) / tw; \n"
-			"return [sqrt(2 * 2.718281828459045) * tmp * exp(-tmp * tmp)];";
+			"sqrt(2 * 2.718281828459045) * tmp * exp(-tmp * tmp);";
 		situation.placePort(index3_t(25, 25, 75), Z_PLUS, new FFVoltageSourceComponent(new FFWaveform(diffgauss), 50.0));
+
+		printf("Configuring solver\n");
+		auto time_1 = std::chrono::system_clock::now();
 
 		FFSolverCPU *solver = FFSolverCPU::createSolver();
 		std::vector<double> freq_list = linspace(75e6, 3e9, 100);
 		situation.configureSolver(solver, situation.calcTimestep(), 1000, freq_list);
 
+		auto time_2 = std::chrono::system_clock::now();
+		printf("Time elapsed = %dms\n", (int)std::chrono::duration_cast<std::chrono::milliseconds>(time_2 - time_1).count());
+		printf("Simulation started\n");
+		
 		for (uint32_t cnt = 0; cnt < 1000; cnt++){
 			if ((cnt % 100) == 0){
 				dvec2 total = solver->calcTotalEM();
@@ -98,7 +103,31 @@ int main(int argc, char *argv[]){
 			situation.stepSolver();
 		}
 
+		auto time_3 = std::chrono::system_clock::now();
+		printf("Time elapsed = %dms\n", (int)std::chrono::duration_cast<std::chrono::milliseconds>(time_3 - time_2).count());
+		printf("Simulation finished");
 
+		auto port_list = situation.getPortList();
+		for (size_t i = 0; i < port_list.size(); i++){
+			if (port_list[i] == nullptr){
+				continue;
+			}
+			auto circuit = port_list[i]->getCircuit();
+			auto &voltage = circuit->getVoltageHistory();
+			auto &current = circuit->getCurrentHistory();
+			double dt = circuit->dt();
+
+			char fname[256];
+			sprintf(fname, "tmp/port%d_td.txt", (int)i);
+			FILE *fp = fopen(fname, "w");
+			if (fp == NULL) {
+				continue;
+			}
+			for (size_t n = 0; n < voltage.size(); n++){
+				fprintf(fp, "%e %e %e\n", dt * n, voltage[n], current[n]);
+			}
+			fclose(fp);
+		}
 
 
 

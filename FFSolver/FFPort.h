@@ -33,6 +33,9 @@ namespace FFFDTD{
 		// デストラクタ
 		~FFPort();
 
+		// メモリーを確保する
+		void allocate(size_t size, double timestep);
+
 		// 電界プローブを割り当てる
 		void attachEProbe(oindex_t probe_id, double iwidth);
 
@@ -41,6 +44,11 @@ namespace FFFDTD{
 
 		// 次の出力値を計算する
 		void calcValue(FFSolver *solver, size_t n);
+
+		// 回路を取得する
+		const FFCircuit* getCircuit(void) const{
+			return m_Circuit;
+		}
 	};
 }
 

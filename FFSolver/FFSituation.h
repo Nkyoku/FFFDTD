@@ -24,9 +24,9 @@ namespace FFFDTD{
 	// シミュレーション環境を作成するクラス
 	class FFSituation{
 		/*** 定数 ***/
-	private:
-		// PECの材質ID
-		static const matid_t MATID_PEC = 0;
+	public:
+		// 真空の材質ID
+		static const matid_t MATID_VACUUM = 0;
 
 
 

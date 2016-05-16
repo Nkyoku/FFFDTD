@@ -135,17 +135,322 @@ namespace FFFDTD{
 
 	// 給電と観測を行う
 	void FFSolverCPU::feedAndMeasure(size_t n){
+		// 時間ドメインプローブの測定を行う
+		for (int i = 0; i < (int)m_TDProbeList.size(); i++){
+			Probe_t &probe = m_TDProbeList[i];
+			index_t index = probe.index;
+			real value;
+			switch (probe.type){
+			case EMType::Ex:
+				value = m_Ex[index];
+				break;
+			case EMType::Ey:
+				value = m_Ey[index];
+				break;
+			case EMType::Ez:
+				value = m_Ez[index];
+				break;
+			case EMType::Hx:
+				value = m_Hx[index];
+				break;
+			case EMType::Hy:
+				value = m_Hy[index];
+				break;
+			case EMType::Hz:
+				value = m_Hz[index];
+				break;
+			}
+			m_TDProbeMeasurment[i][n] = value;
+		}
 
+		// ポートの出力値を計算する
+		for (int i = 0; i < (int)m_PortList.size(); i++){
+			FFPort *port = m_PortList[i];
+			if (port != nullptr){
+				port->calcValue(this, n);
+			}
+		}
 	}
 
 	// 電界を計算する
 	void FFSolverCPU::calcEField(void){
+		const rvec2 *Coef2List = m_Coef2List.data();
+		const rvec3 *Coef3List = m_Coef3List.data();
+		const cindex_t *ExCIndex = m_ExCIndex.data();
+		const cindex_t *EyCIndex = m_EyCIndex.data();
+		const cindex_t *EzCIndex = m_EzCIndex.data();
+		real *Ex = m_Ex.data();
+		real *Ey = m_Ey.data();
+		real *Ez = m_Ez.data();
+		const real *Hx = m_Hx.data();
+		const real *Hy = m_Hy.data();
+		const real *Hz = m_Hz.data();
+		const int X = 1;
+		const int Y = m_Size.x + 1;
+		const int Z = (m_Size.x + 1) * (m_Size.y + 1);
+		const int RangeMx = m_RangeM.x;
+		const int RangeMy = m_RangeM.y;
+		const int RangeMz = m_RangeM.z;
+		const int RangeNx = m_RangeN.x;
+		const int RangeNy = m_RangeN.y;
+		const int RangeNz = m_RangeN.z;
+		const int ExOffset = X * m_StartM.x + Y * m_StartN.y + Z * m_StartN.z;
+		const int EyOffset = X * m_StartN.x + Y * m_StartM.y + Z * m_StartN.z;
+		const int EzOffset = X * m_StartN.x + Y * m_StartN.y + Z * m_StartM.z;
 
+		// Dx,Exを計算する
+#pragma omp parallel for
+		for (int riz = 0; riz < RangeNz; riz++){
+			for (int riy = 0; riy < RangeNy; riy++){
+				int index = ExOffset + Y * riy + Z * riz;
+				for (int rix = 0; rix < RangeMx; rix++){
+					const rvec3 &coef = Coef3List[ExCIndex[index]];
+					Ex[index]
+						= coef.x * Ex[index]
+						+ coef.y * (Hz[index] - Hz[index - Y])
+						- coef.z * (Hy[index] - Hy[index - Z]);
+					index++;
+				}
+			}
+		}
+
+		// Dy,Eyを計算する
+#pragma omp parallel for
+		for (int riz = 0; riz < RangeNz; riz++){
+			for (int riy = 0; riy < RangeMy; riy++){
+				int index = EyOffset + Y * riy + Z * riz;
+				for (int rix = 0; rix < RangeNx; rix++){
+					const rvec3 &coef = Coef3List[EyCIndex[index]];
+					Ey[index]
+						= coef.x * Ey[index]
+						+ coef.y * (Hx[index] - Hx[index - Z])
+						- coef.z * (Hz[index] - Hz[index - X]);
+					index++;
+				}
+			}
+		}
+
+		// Dz,Ezを計算する
+#pragma omp parallel for
+		for (int riz = 0; riz < RangeMz; riz++){
+			for (int riy = 0; riy < RangeNy; riy++){
+				int index = EzOffset + Y * riy + Z * riz;
+				for (int rix = 0; rix < RangeNx; rix++){
+					const rvec3 &coef = Coef3List[EzCIndex[index]];
+					Ez[index]
+						= coef.x * Ez[index]
+						+ coef.y * (Hy[index] - Hy[index - X])
+						- coef.z * (Hx[index] - Hx[index - Y]);
+					index++;
+				}
+			}
+		}
+
+		rvec2 *PmlDx = m_PMLDx.data();
+		rvec2 *PmlDy = m_PMLDy.data();
+		rvec2 *PmlDz = m_PMLDz.data();
+		const cindex2_t *PmlDxCIndex = m_PMLDxCIndex.data();
+		const cindex2_t *PmlDyCIndex = m_PMLDyCIndex.data();
+		const cindex2_t *PmlDzCIndex = m_PMLDzCIndex.data();
+		const index_t *PmlDxIndex = m_PMLDxIndex.data();
+		const index_t *PmlDyIndex = m_PMLDyIndex.data();
+		const index_t *PmlDzIndex = m_PMLDzIndex.data();
+
+		// PML Dx,Exを計算する
+		const int NumOfPMLDx = m_NumOfPMLD.x;
+#pragma omp parallel for
+		for (int i = 0; i < NumOfPMLDx; i++){
+			const cindex2_t &pml_cindex = PmlDxCIndex[i];
+			int index = PmlDxIndex[i];
+			const rvec2 &coef_dxy = Coef2List[pml_cindex.x];
+			const rvec2 &coef_dxz = Coef2List[pml_cindex.y];
+			const rvec2 &coef_ex = Coef2List[ExCIndex[index]];
+			real dx_prev = PmlDx[i].x + PmlDx[i].y;
+			PmlDx[i].x
+				= coef_dxy.x * PmlDx[i].x
+				+ coef_dxy.y * (Hz[index] - Hz[index - Y]);
+			PmlDx[i].y
+				= coef_dxz.x * PmlDx[i].y
+				- coef_dxz.y * (Hy[index] - Hy[index - Z]);
+			real dx_next = PmlDx[i].x + PmlDx[i].y;
+			Ex[index] = coef_ex.x * Ex[index] + coef_ex.y * (dx_next - dx_prev);
+		}
+
+		// PML Dy,Eyを計算する
+		const int NumOfPMLDy = m_NumOfPMLD.y;
+#pragma omp parallel for
+		for (int i = 0; i < NumOfPMLDy; i++){
+			const cindex2_t &pml_cindex = m_PMLDyCIndex[i];
+			int index = m_PMLDyIndex[i];
+			const rvec2 &coef_dyz = Coef2List[pml_cindex.x];
+			const rvec2 &coef_dyx = Coef2List[pml_cindex.y];
+			const rvec2 &coef_ey = Coef2List[EyCIndex[index]];
+			real dy_prev = PmlDy[i].x + PmlDy[i].y;
+			PmlDy[i].x
+				= coef_dyz.x * PmlDy[i].x
+				+ coef_dyz.y * (Hx[index] - Hx[index - Z]);
+			PmlDy[i].y
+				= coef_dyx.x * PmlDy[i].y
+				- coef_dyx.y * (Hz[index] - Hz[index - X]);
+			real dy_next = PmlDy[i].x + PmlDy[i].y;
+			Ey[index] = coef_ey.x * Ey[index] + coef_ey.y * (dy_next - dy_prev);
+		}
+
+		// PML Dz,Ezを計算する
+		const int NumOfPMLDz = m_NumOfPMLD.z;
+#pragma omp parallel for
+		for (int i = 0; i < NumOfPMLDz; i++){
+			const cindex2_t &pml_cindex = PmlDzCIndex[i];
+			int index = m_PMLDzIndex[i];
+			const rvec2 &coef_dzx = Coef2List[pml_cindex.x];
+			const rvec2 &coef_dzy = Coef2List[pml_cindex.y];
+			const rvec2 &coef_ez = Coef2List[EzCIndex[index]];
+			real dz_prev = PmlDz[i].x + PmlDz[i].y;
+			PmlDz[i].x
+				= coef_dzx.x * PmlDz[i].x
+				+ coef_dzx.y * (Hy[index] - Hy[index - X]);
+			PmlDz[i].y
+				= coef_dzy.x * PmlDz[i].y
+				- coef_dzy.y * (Hx[index] - Hx[index - Y]);
+			real dz_next = PmlDz[i].x + PmlDz[i].y;
+			Ez[index] = coef_ez.x * Ez[index] + coef_ez.y * (dz_next - dz_prev);
+		}
 	}
 
 	// 磁界を計算する
 	void FFSolverCPU::calcHField(void){
+		const rvec2 *Coef2List = m_Coef2List.data();
+		const rvec3 *Coef3List = m_Coef3List.data();
+		const cindex_t *HxCIndex = m_HxCIndex.data();
+		const cindex_t *HyCIndex = m_HyCIndex.data();
+		const cindex_t *HzCIndex = m_HzCIndex.data();
+		const real *Ex = m_Ex.data();
+		const real *Ey = m_Ey.data();
+		const real *Ez = m_Ez.data();
+		real *Hx = m_Hx.data();
+		real *Hy = m_Hy.data();
+		real *Hz = m_Hz.data();
+		const int X = 1;
+		const int Y = m_Size.x + 1;
+		const int Z = (m_Size.x + 1) * (m_Size.y + 1);
+		const int RangeMx = m_RangeM.x;
+		const int RangeMy = m_RangeM.y;
+		const int RangeMz = m_RangeM.z;
+		const int RangeNx = m_RangeN.x;
+		const int RangeNy = m_RangeN.y;
+		const int RangeNz = m_RangeN.z;
+		const int HxOffset = X * m_StartN.x + Y * m_StartM.y + Z * m_StartM.z;
+		const int HyOffset = X * m_StartM.x + Y * m_StartN.y + Z * m_StartM.z;
+		const int HzOffset = X * m_StartM.x + Y * m_StartM.y + Z * m_StartN.z;
 
+		// Hxを計算する
+#pragma omp parallel for
+		for (int riz = 0; riz < RangeMz; riz++){
+			for (int riy = 0; riy < RangeMy; riy++){
+				int index = HxOffset + Y * riy + Z * riz;
+				for (int rix = 0; rix < RangeNx; rix++){
+					const rvec3 &coef = Coef3List[HxCIndex[index]];
+					Hx[index]
+						= coef.x * Hx[index]
+						- coef.y * (Ez[index + Y] - Ez[index])
+						+ coef.z * (Ey[index + Z] - Ey[index]);
+					index++;
+				}
+			}
+		}
+
+		// Hyを計算する
+#pragma omp parallel for
+		for (int riz = 0; riz < RangeMz; riz++){
+			for (int riy = 0; riy < RangeNy; riy++){
+				int index = HyOffset + Y * riy + Z * riz;
+				for (int rix = 0; rix < RangeMx; rix++){
+					const rvec3 &coef = Coef3List[HyCIndex[index]];
+					Hy[index]
+						= coef.x * Hy[index]
+						- coef.y * (Ex[index + Z] - Ex[index])
+						+ coef.z * (Ez[index + X] - Ez[index]);
+					index++;
+				}
+			}
+		}
+
+		// Hzを計算する
+#pragma omp parallel for
+		for (int riz = 0; riz < RangeNz; riz++){
+			for (int riy = 0; riy < RangeMy; riy++){
+				int index = HzOffset + Y * riy + Z * riz;
+				for (int rix = 0; rix < RangeMx; rix++){
+					const rvec3 &coef = Coef3List[HzCIndex[index]];
+					Hz[index]
+						= coef.x * Hz[index]
+						- coef.y * (Ey[index + X] - Ey[index])
+						+ coef.z * (Ex[index + Y] - Ex[index]);
+					index++;
+				}
+			}
+		}
+
+		rvec2 *PmlHx = m_PMLHx.data();
+		rvec2 *PmlHy = m_PMLHy.data();
+		rvec2 *PmlHz = m_PMLHz.data();
+		const cindex2_t *PmlHxCIndex = m_PMLHxCIndex.data();
+		const cindex2_t *PmlHyCIndex = m_PMLHyCIndex.data();
+		const cindex2_t *PmlHzCIndex = m_PMLHzCIndex.data();
+		const index_t *PmlHxIndex = m_PMLHxIndex.data();
+		const index_t *PmlHyIndex = m_PMLHyIndex.data();
+		const index_t *PmlHzIndex = m_PMLHzIndex.data();
+
+		// PML Hxを計算する
+		const int NumOfPMLHx = m_NumOfPMLH.x;
+#pragma omp parallel for
+		for (int i = 0; i < NumOfPMLHx; i++){
+			const cindex2_t &pml_cindex = PmlHxCIndex[i];
+			int index = PmlHxIndex[i];
+			const rvec2 &coef_hxy = Coef2List[pml_cindex.x];
+			const rvec2 &coef_hxz = Coef2List[pml_cindex.y];
+			PmlHx[i].x
+				= coef_hxy.x * PmlHx[i].x
+				- coef_hxy.y * (Ez[index + Y] - Ez[index]);
+			PmlHx[i].y
+				= coef_hxz.x * PmlHx[i].y
+				+ coef_hxz.y * (Ey[index + Z] - Ey[index]);
+			Hx[index] = PmlHx[i].x + PmlHx[i].y;
+		}
+
+		// PML Hyを計算する
+		const int NumOfPMLHy = m_NumOfPMLH.y;
+#pragma omp parallel for
+		for (int i = 0; i < NumOfPMLHy; i++){
+			const cindex2_t &pml_cindex = PmlHyCIndex[i];
+			int index = PmlHyIndex[i];
+			const rvec2 &coef_hyz = Coef2List[pml_cindex.x];
+			const rvec2 &coef_hyx = Coef2List[pml_cindex.y];
+			PmlHy[i].x
+				= coef_hyz.x * PmlHy[i].x
+				- coef_hyz.y * (Ex[index + Z] - Ex[index]);
+			PmlHy[i].y
+				= coef_hyx.x * PmlHy[i].y
+				+ coef_hyx.y * (Ez[index + X] - Ez[index]);
+			Hy[index] = PmlHy[i].x + PmlHy[i].y;
+		}
+
+		// PML Hzを計算する
+		const int NumOfPMLHz = m_NumOfPMLH.z;
+#pragma omp parallel for
+		for (int i = 0; i < NumOfPMLHz; i++){
+			const cindex2_t &pml_cindex = PmlHzCIndex[i];
+			int index = PmlHzIndex[i];
+			const rvec2 &coef_hzx = Coef2List[pml_cindex.x];
+			const rvec2 &coef_hzy = Coef2List[pml_cindex.y];
+			PmlHz[i].x
+				= coef_hzx.x * PmlHz[i].x
+				- coef_hzx.y * (Ey[index + X] - Ey[index]);
+			PmlHz[i].y
+				= coef_hzy.x * PmlHz[i].y
+				+ coef_hzy.y * (Ex[index + Y] - Ex[index]);
+			Hz[index] = PmlHz[i].x + PmlHz[i].y;
+		}
 	}
 	
 	// 時間ドメインプローブの位置の電磁界を励振する

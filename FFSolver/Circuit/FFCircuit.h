@@ -44,13 +44,6 @@ namespace FFFDTD{
 			return m_CurrentHistory;
 		}
 
-	protected:
-		// 端子電圧V[n]と端子電流I[n-1/2]を格納する
-		void storeValues(size_t n, double voltage, double current){
-			m_VoltageHistory[n] = voltage;
-			m_CurrentHistory[n] = current;
-		}
-
 		// 端子電圧V[n-m]を取得する
 		double voltage(size_t n, size_t m) const{
 			return (m <= n) ? m_VoltageHistory[n - m] : 0.0;
@@ -64,6 +57,13 @@ namespace FFFDTD{
 		// タイムステップを取得する
 		double dt(void) const{
 			return m_Timestep;
+		}
+
+	protected:
+		// 端子電圧V[n]と端子電流I[n-1/2]を格納する
+		void storeValues(size_t n, double voltage, double current){
+			m_VoltageHistory[n] = voltage;
+			m_CurrentHistory[n] = current;
 		}
 	};
 }

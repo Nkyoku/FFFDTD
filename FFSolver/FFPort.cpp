@@ -18,14 +18,21 @@ namespace FFFDTD{
 		delete m_Circuit;
 	}
 
+	// メモリーを確保する
+	void FFPort::allocate(size_t size, double timestep){
+		m_Circuit->allocate(size, timestep);
+	}
+
 	// 電界プローブを割り当てる
 	void FFPort::attachEProbe(oindex_t probe_id, double iwidth){
-		
+		m_EProbeID = probe_id;
+		m_EProbeCoef = iwidth;
 	}
 
 	// 磁界プローブを割り当てる
 	void FFPort::attachMProbe(oindex_t probe_id, double width){
-
+		m_MProbeIDList.push_back(probe_id);
+		m_MProbeCoefList.push_back(width);
 	}
 
 	// 次の出力値を計算する

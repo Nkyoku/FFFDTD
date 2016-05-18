@@ -686,9 +686,13 @@ namespace FFFDTD{
 		const size_t NF = measure_freq.size();
 
 		// 解析空間の大きさを計算する
-		// Mxyz  : セル数
-		// Nxyz  : グリッド本数(Mxyz+1)
-		// VNxyz : 有効なグリッド本数
+		// WNxyz : グローバル領域のグリッド本数
+		// Mxyz  : ローカル領域のセル数
+		// Nxyz  : ローカル領域のグリッド本数(Mxyz+1)
+		// VNxyz : ローカル領域の有効なグリッド本数
+		const index_t GNx = m_Size.x + 1;
+		const index_t GNy = m_Size.y + 1;
+		const index_t GNz = m_Size.z + 1;
 		const index_t Mx = m_Size.x;
 		const index_t My = m_Size.y;
 		const index_t Mz = m_LocalSizeZ;
@@ -798,8 +802,8 @@ namespace FFFDTD{
 								(iy < y_start_n) || (y_end_n <= iy) ||
 								(ix < x_start_m) || (x_end_m <= ix))
 							{
-								double sigma_y = (0 < Ly) ? calcSigma(calcSigmaMax(mat.eps(), dy, Ly), Ly, Ny - Ly - 1, iy, Ly) : 0.0;
-								double sigma_z = (0 < Lz) ? calcSigma(calcSigmaMax(mat.eps(), dz, Lz), Lz, Nz - Lz - 1, iz, Lz) : 0.0;
+								double sigma_y = (0 < Ly) ? calcSigma(calcSigmaMax(mat.eps(), dy, Ly), Ly, GNy - Ly - 1, iy, Ly) : 0.0;
+								double sigma_z = (0 < Lz) ? calcSigma(calcSigmaMax(mat.eps(), dz, Lz), Lz, GNz - Lz - 1, iz, Lz) : 0.0;
 								pml_cindex.push_back(cindex2_t(
 									registerCoef2(FFMaterial::calcDCoefPML(mat.eps_r(), sigma_y, Dt, dy)),
 									registerCoef2(FFMaterial::calcDCoefPML(mat.eps_r(), sigma_z, Dt, dz))));
@@ -835,8 +839,8 @@ namespace FFFDTD{
 								(iy < y_start_m) || (y_end_m <= iy) ||
 								(ix < x_start_n) || (x_end_n <= ix))
 							{
-								double sigma_z = (0 < Lz) ? calcSigma(calcSigmaMax(mat.eps(), dz, Lz), Lz, Nz - Lz - 1, iz, Lz) : 0.0;
-								double sigma_x = (0 < Lx) ? calcSigma(calcSigmaMax(mat.eps(), dx, Lx), Lx, Nx - Lx - 1, ix, Lx) : 0.0;
+								double sigma_z = (0 < Lz) ? calcSigma(calcSigmaMax(mat.eps(), dz, Lz), Lz, GNz - Lz - 1, iz, Lz) : 0.0;
+								double sigma_x = (0 < Lx) ? calcSigma(calcSigmaMax(mat.eps(), dx, Lx), Lx, GNx - Lx - 1, ix, Lx) : 0.0;
 								pml_cindex.push_back(cindex2_t(
 									registerCoef2(FFMaterial::calcDCoefPML(mat.eps_r(), sigma_z, Dt, dz)),
 									registerCoef2(FFMaterial::calcDCoefPML(mat.eps_r(), sigma_x, Dt, dx))));
@@ -872,8 +876,8 @@ namespace FFFDTD{
 								(iy < y_start_n) || (y_end_n <= iy) ||
 								(ix < x_start_n) || (x_end_n <= ix))
 							{
-								double sigma_x = (0 < Lx) ? calcSigma(calcSigmaMax(mat.eps(), dx, Lx), Lx, Nx - Lx - 1, ix, Lx) : 0.0;
-								double sigma_y = (0 < Ly) ? calcSigma(calcSigmaMax(mat.eps(), dy, Ly), Ly, Ny - Ly - 1, iy, Ly) : 0.0;
+								double sigma_x = (0 < Lx) ? calcSigma(calcSigmaMax(mat.eps(), dx, Lx), Lx, GNx - Lx - 1, ix, Lx) : 0.0;
+								double sigma_y = (0 < Ly) ? calcSigma(calcSigmaMax(mat.eps(), dy, Ly), Ly, GNy - Ly - 1, iy, Ly) : 0.0;
 								pml_cindex.push_back(cindex2_t(
 									registerCoef2(FFMaterial::calcDCoefPML(mat.eps_r(), sigma_x, Dt, dx)),
 									registerCoef2(FFMaterial::calcDCoefPML(mat.eps_r(), sigma_y, Dt, dy))));
@@ -909,8 +913,8 @@ namespace FFFDTD{
 								(iy < y_start_m) || (y_end_m <= iy) ||
 								(ix < x_start_n) || (x_end_n <= ix))
 							{
-								double sigma_m_y = (0 < Ly) ? calcSigma(calcSigmaMax(mat.mu(), dy, Ly), Ly, Ny - Ly - 1, iy + 0.5, Ly) : 0.0;
-								double sigma_m_z = (0 < Lz) ? calcSigma(calcSigmaMax(mat.mu(), dz, Lz), Lz, Nz - Lz - 1, iz + 0.5, Lz) : 0.0;
+								double sigma_m_y = (0 < Ly) ? calcSigma(calcSigmaMax(mat.mu(), dy, Ly), Ly, GNy - Ly - 1, iy + 0.5, Ly) : 0.0;
+								double sigma_m_z = (0 < Lz) ? calcSigma(calcSigmaMax(mat.mu(), dz, Lz), Lz, GNz - Lz - 1, iz + 0.5, Lz) : 0.0;
 								pml_cindex.push_back(cindex2_t(
 									registerCoef2(FFMaterial::calcHCoefPML(mat.mu_r(), sigma_m_y, Dt, dy)),
 									registerCoef2(FFMaterial::calcHCoefPML(mat.mu_r(), sigma_m_z, Dt, dz))));
@@ -943,8 +947,8 @@ namespace FFFDTD{
 								(iy < y_start_n) || (y_end_n <= iy) ||
 								(ix < x_start_m) || (x_end_m <= ix))
 							{
-								double sigma_m_z = (0 < Lz) ? calcSigma(calcSigmaMax(mat.mu(), dz, Lz), Lz, Nz - Lz - 1, iz + 0.5, Lz) : 0.0;
-								double sigma_m_x = (0 < Lx) ? calcSigma(calcSigmaMax(mat.mu(), dx, Lx), Lx, Nx - Lx - 1, ix + 0.5, Lx) : 0.0;
+								double sigma_m_z = (0 < Lz) ? calcSigma(calcSigmaMax(mat.mu(), dz, Lz), Lz, GNz - Lz - 1, iz + 0.5, Lz) : 0.0;
+								double sigma_m_x = (0 < Lx) ? calcSigma(calcSigmaMax(mat.mu(), dx, Lx), Lx, GNx - Lx - 1, ix + 0.5, Lx) : 0.0;
 								pml_cindex.push_back(cindex2_t(
 									registerCoef2(FFMaterial::calcHCoefPML(mat.mu_r(), sigma_m_z, Dt, dz)),
 									registerCoef2(FFMaterial::calcHCoefPML(mat.mu_r(), sigma_m_x, Dt, dx))));
@@ -977,8 +981,8 @@ namespace FFFDTD{
 								(iy < y_start_m) || (y_end_m <= iy) ||
 								(ix < x_start_m) || (x_end_m <= ix))
 							{
-								double sigma_m_x = (0 < Lx) ? calcSigma(calcSigmaMax(mat.mu(), dx, Lx), Lx, Nx - Lx - 1, ix + 0.5, Lx) : 0.0;
-								double sigma_m_y = (0 < Ly) ? calcSigma(calcSigmaMax(mat.mu(), dy, Ly), Ly, Ny - Ly - 1, iy + 0.5, Ly) : 0.0;
+								double sigma_m_x = (0 < Lx) ? calcSigma(calcSigmaMax(mat.mu(), dx, Lx), Lx, GNx - Lx - 1, ix + 0.5, Lx) : 0.0;
+								double sigma_m_y = (0 < Ly) ? calcSigma(calcSigmaMax(mat.mu(), dy, Ly), Ly, GNy - Ly - 1, iy + 0.5, Ly) : 0.0;
 								pml_cindex.push_back(cindex2_t(
 									registerCoef2(FFMaterial::calcHCoefPML(mat.mu_r(), sigma_m_x, Dt, dx)),
 									registerCoef2(FFMaterial::calcHCoefPML(mat.mu_r(), sigma_m_y, Dt, dy))));
@@ -1147,7 +1151,7 @@ namespace FFFDTD{
 				MPI_Isend(tx_ez, (int)m_CountPerSlice, MPI_FLOAT, bottom_rank, (int)MPITag::Ez, MPI_COMM_WORLD, req++);
 			}
 			if (top != nullptr){
-				top->m_Solver->setEdgeH(tx_ex, tx_ey, nullptr);
+				top->m_Solver->setEdgeE(tx_ex, tx_ey, nullptr);
 			}
 			else if (0 < top_rank){
 				m_MPIBufferZ.resize(m_CountPerSlice);

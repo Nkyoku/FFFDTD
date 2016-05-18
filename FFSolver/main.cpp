@@ -15,7 +15,7 @@ using namespace glm;
 
 
 
-#define MULTI_SOLVER_TEST 0
+#define MULTI_SOLVER_TEST 1
 
 
 
@@ -106,6 +106,26 @@ int main(int argc, char *argv[]){
 			if ((cnt % 100) == 0){
 				dvec2 total = solver->calcTotalEM();
 				printf("Step%d : E=%e, H=%e\n", cnt, total.x, total.y);
+			}
+			if ((cnt == 100) || (cnt == 200) || (cnt == 300)){
+				char name[256];
+				sprintf(name, "tmp/raw%d.txt", (int)cnt);
+				FILE *fp = fopen(name, "w");;
+				if (fp != NULL){
+					index3_t size = solver->getSize();
+					index_t y = 25;
+					for (index_t z = 0; z <= size.z; z++){
+						for (index_t x = 0; x <= size.x; x++){
+							real ex = solver->getExDebug(x, y, z);
+							real ey = solver->getEyDebug(x, y, z);
+							real ez = solver->getEzDebug(x, y, z);
+							real eabs = sqrt(ex * ex + ey * ey + ez * ez);
+							fprintf(fp, "%d %d %e %e %e %e\n", (int)z, (int)x, ex, ey, ez, eabs);
+						}
+						fprintf(fp, "\n");
+					}
+					fclose(fp);
+				}
 			}
 			bool result;
 			result = situation.executeSolverStep1();
@@ -211,27 +231,27 @@ int main(int argc, char *argv[]){
 					printf("[%d] Step%d : E=%e, H=%e\n", (int)n, cnt, total.x, total.y);
 				}
 			}
-			if ((cnt == 20) || (cnt == 25) || (cnt == 30)){
-				char name[256];
-				sprintf(name, "tmp/raw%d.txt", (int)cnt);
-				FILE *fp = fopen(name, "w");;
-				if (fp != NULL){
-					FFSolverCPU *sol = solver[0];
-					const index_t Nx = 51;
-					const index_t Ny = 51;
-					const index_t Nz = 102;
-					index_t y = 25;
-					for (index_t z = 0; z < Nz; z++){
-						for (index_t x = 0; x < Nx; x++){
-							real ex = sol->getExDebug(x, y, z);
-							real ey = sol->getEyDebug(x, y, z);
-							real ez = sol->getEzDebug(x, y, z);
-							real eabs = sqrt(ex * ex + ey * ey + ez * ez);
-							fprintf(fp, "%d %d %e %e %e %e\n", (int)z, (int)x, ex, ey, ez, eabs);
+			if ((cnt == 100) || (cnt == 200) || (cnt == 300)){
+				for (size_t n = 0; n < 2; n++){
+					char name[256];
+					sprintf(name, "tmp/raw%d_%d.txt", (int)n, (int)cnt);
+					FILE *fp = fopen(name, "w");;
+					if (fp != NULL){
+						FFSolverCPU *sol = solver[n];
+						index3_t size = sol->getSize();
+						index_t y = 25;
+						for (index_t z = 0; z <= size.z; z++){
+							for (index_t x = 0; x <= size.x; x++){
+								real ex = sol->getExDebug(x, y, z);
+								real ey = sol->getEyDebug(x, y, z);
+								real ez = sol->getEzDebug(x, y, z);
+								real eabs = sqrt(ex * ex + ey * ey + ez * ez);
+								fprintf(fp, "%d %d %e %e %e %e\n", (int)z, (int)x, ex, ey, ez, eabs);
+							}
+							fprintf(fp, "\n");
 						}
-						fprintf(fp, "\n");
+						fclose(fp);
 					}
-					fclose(fp);
 				}
 			}
 			bool result;

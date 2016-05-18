@@ -22,6 +22,8 @@ namespace FFFDTD{
 		, m_Solver(nullptr)
 		, m_NT(0), m_IT(0)
 		, m_FreqList()
+		, m_CountPerSlice(0)
+		, m_MPIBufferX(), m_MPIBufferY(), m_MPIBufferZ()
 	{
 
 	}
@@ -705,6 +707,7 @@ namespace FFFDTD{
 		index_t z_start = (m_LocalOffsetZ < Lz) ? (Lz - m_LocalOffsetZ) : 0;
 		index_t z_end = std::min(m_LocalSizeZ, m_Size.z - Lz - m_LocalOffsetZ);
 		solver->initializeMemory(index3_t(PMx, PMy, PMz), index3_t(Lx, Ly, z_start), index3_t(PMx - 2 * Lx, PMy - 2 * Ly, z_end - z_start));
+		m_CountPerSlice = (PMx + 1) * (PMy + 1);
 
 		// 係数リスト
 		std::vector<rvec2> coef2_list(1, rvec2(0.0, 0.0));
@@ -990,8 +993,8 @@ namespace FFFDTD{
 		}
 	}
 
-	// 計算を1ステップ進める
-	size_t FFSituation::stepSolver(int bottom_rank, int top_rank){
+	// 計算ステップ1を実行する (給電・計測)
+	bool FFSituation::executeSolverStep1(void){
 		if (m_Solver == nullptr){
 			throw;
 		}
@@ -1003,74 +1006,148 @@ namespace FFFDTD{
 		m_Solver->feedAndMeasure(m_IT);
 		m_IT++;
 
-		if (m_IT < m_NT){
-			// 磁界を計算する
-			m_Solver->calcHField();
+		return m_IT < m_NT;
+	}
 
-			// 端部の磁界を送受信
-			if (isConnectedX()){
-				m_Solver->exchangeEdgeH(Axis::X);
+	// 計算ステップ2を実行する (磁界の計算)
+	void FFSituation::executeSolverStep2(void){
+		// 磁界を計算する
+		m_Solver->calcHField();
+
+		// 端部の磁界をコピーする
+		if (isConnectedX()){
+			m_Solver->exchangeEdgeH(Axis::X);
+		}
+		if (isConnectedY()){
+			m_Solver->exchangeEdgeH(Axis::Y);
+		}
+		if (isConnectedZ() && (m_LocalSizeZ == m_Size.z)){
+			m_Solver->exchangeEdgeH(Axis::Z);
+		}
+	}
+
+	// 計算ステップ3を実行する (磁界の共有)
+	void FFSituation::executeSolverStep3(FFSituation *bottom, FFSituation *top, int bottom_rank, int top_rank){
+		// Z端部の磁界を共有する
+		if ((m_LocalSizeZ != m_Size.z) || isConnectedZ()){
+			// 端部の磁界を取得する
+			const real *tx_hx, *tx_hy, *tx_hz;
+			real *rx_hx = nullptr, *rx_hy = nullptr, *rx_hz = nullptr;
+			m_Solver->getEdgeH(nullptr, nullptr, &tx_hz);
+			m_Solver->getEdgeH(&tx_hx, &tx_hy, nullptr);
+
+			// 送受信する
+			MPI_Request mpi_request[6];
+			MPI_Request *req = mpi_request;
+			if (bottom != nullptr){
+				bottom->m_Solver->setEdgeH(tx_hx, tx_hy, nullptr);
 			}
-			if (isConnectedY()){
-				m_Solver->exchangeEdgeH(Axis::Y);
+			else if (0 < bottom_rank){
+				m_MPIBufferZ.resize(m_CountPerSlice);
+				rx_hz = m_MPIBufferZ.data();
+				MPI_Isend(tx_hx, (int)m_CountPerSlice, MPI_FLOAT, bottom_rank, (int)MPITag::Hx, MPI_COMM_WORLD, req++);
+				MPI_Isend(tx_hy, (int)m_CountPerSlice, MPI_FLOAT, bottom_rank, (int)MPITag::Hy, MPI_COMM_WORLD, req++);
+				MPI_Irecv(rx_hz, (int)m_CountPerSlice, MPI_FLOAT, bottom_rank, (int)MPITag::Hz, MPI_COMM_WORLD, req++);
 			}
-			if (isConnectedZ()){
-				if (m_LocalSizeZ == m_Size.z){
-					m_Solver->exchangeEdgeH(Axis::Z);
-				}
-				else{
-					/*std::vector<real> t_hx, t_hy, t_hz;
-					m_Solver->getEdgeH(nullptr, nullptr, &t_hz);
-					m_Solver->getEdgeH(&t_hx, &t_hy, nullptr);
-					std::vector<real> r_hx(t_hx.size()), r_hy(t_hy.size()), r_hz(t_hz.size());
-					MPI_Request req[6];
-					MPI_Status status[6];
-					int result_t_hx = MPI_Isend(t_hx.data(), (int)t_hx.size(), MPI_FLOAT, bottom_rank, (int)MPITag::Hx, MPI_COMM_WORLD, &req[0]);
-					int result_t_hy = MPI_Isend(t_hy.data(), (int)t_hy.size(), MPI_FLOAT, bottom_rank, (int)MPITag::Hy, MPI_COMM_WORLD, &req[1]);
-					int result_t_hz = MPI_Isend(t_hz.data(), (int)t_hz.size(), MPI_FLOAT, top_rank, (int)MPITag::Hz, MPI_COMM_WORLD, &req[2]);
-					int result_r_hx = MPI_Irecv(r_hx.data(), (int)r_hx.size(), MPI_FLOAT, top_rank, (int)MPITag::Hx, MPI_COMM_WORLD, &req[3]);
-					int result_r_hy = MPI_Irecv(r_hy.data(), (int)r_hy.size(), MPI_FLOAT, top_rank, (int)MPITag::Hy, MPI_COMM_WORLD, &req[4]);
-					int result_r_hz = MPI_Irecv(r_hz.data(), (int)r_hz.size(), MPI_FLOAT, bottom_rank, (int)MPITag::Hz, MPI_COMM_WORLD, &req[5]);
-					int result_wait = MPI_Waitall(sizeof(req) / sizeof(int), req, status);*/
-				}
+			if (top != nullptr){
+				top->m_Solver->setEdgeH(nullptr, nullptr, tx_hz);
+			}
+			else if (0 < top_rank){
+				m_MPIBufferX.resize(m_CountPerSlice);
+				m_MPIBufferY.resize(m_CountPerSlice);
+				rx_hx = m_MPIBufferX.data();
+				rx_hy = m_MPIBufferY.data();
+				MPI_Irecv(rx_hx, (int)m_CountPerSlice, MPI_FLOAT, top_rank, (int)MPITag::Hx, MPI_COMM_WORLD, req++);
+				MPI_Irecv(rx_hy, (int)m_CountPerSlice, MPI_FLOAT, top_rank, (int)MPITag::Hy, MPI_COMM_WORLD, req++);
+				MPI_Isend(tx_hz, (int)m_CountPerSlice, MPI_FLOAT, top_rank, (int)MPITag::Hz, MPI_COMM_WORLD, req++);
 			}
 
-			// 電界を計算する
-			m_Solver->calcEField();
+			// MPIでの送受信の完了を待つ
+			size_t mpi_count = req - mpi_request;
+			if (0 < mpi_count){
+				MPI_Status mpi_status[6];
+				MPI_Waitall((int)mpi_count, mpi_request, mpi_status);
 
-			// 端部の電界を送受信
-			if (isConnectedX()){
-				m_Solver->exchangeEdgeE(Axis::X);
-			}
-			if (isConnectedY()){
-				m_Solver->exchangeEdgeE(Axis::Y);
-			}
-			if (isConnectedZ()){
-				if (m_LocalSizeZ == m_Size.z){
-					m_Solver->exchangeEdgeE(Axis::Z);
+				if (0 < bottom_rank){
+					m_Solver->setEdgeH(nullptr, nullptr, rx_hz);
 				}
-				else{
-					/*std::vector<real> t_ex, t_ey, t_ez;
-					m_Solver->getEdgeE(nullptr, nullptr, &t_ez);
-					m_Solver->getEdgeE(&t_ex, &t_ey, nullptr);
-					std::vector<real> r_ex(t_ex.size()), r_ey(t_ey.size()), r_ez(t_ez.size());
-					MPI_Request req[6];
-					MPI_Status status[6];
-					int result_t_ex = MPI_Isend(t_ex.data(), (int)t_ex.size(), MPI_FLOAT, top_rank, (int)MPITag::Ex, MPI_COMM_WORLD, &req[0]);
-					int result_t_ey = MPI_Isend(t_ey.data(), (int)t_ey.size(), MPI_FLOAT, top_rank, (int)MPITag::Ey, MPI_COMM_WORLD, &req[1]);
-					int result_t_ez = MPI_Isend(t_ez.data(), (int)t_ez.size(), MPI_FLOAT, bottom_rank, (int)MPITag::Ez, MPI_COMM_WORLD, &req[2]);
-					int result_r_ex = MPI_Irecv(r_ex.data(), (int)r_ex.size(), MPI_FLOAT, bottom_rank, (int)MPITag::Ex, MPI_COMM_WORLD, &req[3]);
-					int result_r_ey = MPI_Irecv(r_ey.data(), (int)r_ey.size(), MPI_FLOAT, bottom_rank, (int)MPITag::Ey, MPI_COMM_WORLD, &req[4]);
-					int result_r_ez = MPI_Irecv(r_ez.data(), (int)r_ez.size(), MPI_FLOAT, top_rank, (int)MPITag::Ez, MPI_COMM_WORLD, &req[5]);
-					int result_wait = MPI_Waitall(sizeof(req) / sizeof(int), req, status);*/
+				if (0 < top_rank){
+					m_Solver->setEdgeH(rx_hx, rx_hy, nullptr);
 				}
 			}
 		}
-
-		return m_IT;
 	}
 
+	// 計算ステップ4を実行する (電界の計算)
+	void FFSituation::executeSolverStep4(void){
+		// 電界を計算する
+		m_Solver->calcEField();
 
+		// 端部の電界をコピーする
+		if (isConnectedX()){
+			m_Solver->exchangeEdgeE(Axis::X);
+		}
+		if (isConnectedY()){
+			m_Solver->exchangeEdgeE(Axis::Y);
+		}
+		if (isConnectedZ()){
+			if (m_LocalSizeZ == m_Size.z){
+				m_Solver->exchangeEdgeE(Axis::Z);
+			}
+		}
+	}
+
+	// 計算ステップ5を実行する (電界の共有)
+	void FFSituation::executeSolverStep5(FFSituation *bottom, FFSituation *top, int bottom_rank, int top_rank){
+		// Z端部の電界を共有する
+		if ((m_LocalSizeZ != m_Size.z) && isConnectedZ()){
+			// 端部の磁界を取得する
+			const real *tx_ex, *tx_ey, *tx_ez;
+			real *rx_ex = nullptr, *rx_ey = nullptr, *rx_ez = nullptr;
+			m_Solver->getEdgeE(nullptr, nullptr, &tx_ez);
+			m_Solver->getEdgeE(&tx_ex, &tx_ey, nullptr);
+
+			// 送受信する
+			MPI_Request mpi_request[6];
+			MPI_Request *req = mpi_request;
+			if (bottom != nullptr){
+				bottom->m_Solver->setEdgeE(nullptr, nullptr, tx_ez);
+			}
+			else if (0 < bottom_rank){
+				m_MPIBufferX.resize(m_CountPerSlice);
+				m_MPIBufferY.resize(m_CountPerSlice);
+				rx_ex = m_MPIBufferX.data();
+				rx_ey = m_MPIBufferY.data();
+				MPI_Irecv(rx_ex, (int)m_CountPerSlice, MPI_FLOAT, bottom_rank, (int)MPITag::Ex, MPI_COMM_WORLD, req++);
+				MPI_Irecv(rx_ey, (int)m_CountPerSlice, MPI_FLOAT, bottom_rank, (int)MPITag::Ey, MPI_COMM_WORLD, req++);
+				MPI_Isend(tx_ez, (int)m_CountPerSlice, MPI_FLOAT, bottom_rank, (int)MPITag::Ez, MPI_COMM_WORLD, req++);
+			}
+			if (top != nullptr){
+				top->m_Solver->setEdgeH(tx_ex, tx_ey, nullptr);
+			}
+			else if (0 < top_rank){
+				m_MPIBufferZ.resize(m_CountPerSlice);
+				rx_ez = m_MPIBufferZ.data();
+				MPI_Isend(tx_ex, (int)m_CountPerSlice, MPI_FLOAT, top_rank, (int)MPITag::Ex, MPI_COMM_WORLD, req++);
+				MPI_Isend(tx_ey, (int)m_CountPerSlice, MPI_FLOAT, top_rank, (int)MPITag::Ey, MPI_COMM_WORLD, req++);
+				MPI_Irecv(rx_ez, (int)m_CountPerSlice, MPI_FLOAT, top_rank, (int)MPITag::Ez, MPI_COMM_WORLD, req++);
+			}
+
+			// MPIでの送受信の完了を待つ
+			size_t mpi_count = req - mpi_request;
+			if (0 < mpi_count){
+				MPI_Status mpi_status[6];
+				MPI_Waitall((int)mpi_count, mpi_request, mpi_status);
+
+				if (0 < bottom_rank){
+					m_Solver->setEdgeE(rx_ex, rx_ey, nullptr);
+				}
+				if (0 < top_rank){
+					m_Solver->setEdgeE(nullptr, nullptr, rx_ez);
+				}
+			}
+		}
+	}
 #pragma endregion
 
 

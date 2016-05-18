@@ -106,6 +106,12 @@ namespace FFFDTD{
 		// 周波数ドメインプローブの解析周波数
 		std::vector<double> m_FreqList;
 
+		// 1スライスに含まれる電磁界成分数
+		size_t m_CountPerSlice;
+
+		// MPI用の一時メモリー
+		std::vector<real> m_MPIBufferX, m_MPIBufferY, m_MPIBufferZ;
+
 
 
 		/*** メソッド ***/
@@ -274,10 +280,21 @@ namespace FFFDTD{
 		// ソルバーにシミュレーション環境を構成する
 		void configureSolver(FFSolver *solver, double timestep, size_t max_iteration, const std::vector<double> &measure_freq);
 
-		// 計算を1ステップ進める
-		size_t stepSolver(int bottom_rank = -1, int top_rank = -1);
+		// 計算ステップ1を実行する (給電・計測)
+		// 計算が終了したときにfalseを返す
+		bool executeSolverStep1(void);
 
+		// 計算ステップ2を実行する (磁界の計算)
+		void executeSolverStep2(void);
 
+		// 計算ステップ3を実行する (磁界の共有)
+		void executeSolverStep3(FFSituation *bottom = nullptr, FFSituation *top = nullptr, int bottom_rank = -1, int top_rank = -1);
+
+		// 計算ステップ4を実行する (電界の計算)
+		void executeSolverStep4(void);
+
+		// 計算ステップ5を実行する (電界の共有)
+		void executeSolverStep5(FFSituation *bottom = nullptr, FFSituation *top = nullptr, int bottom_rank = -1, int top_rank = -1);
 #pragma endregion
 
 

@@ -76,16 +76,16 @@ namespace FFFDTD{
 		void exchangeEdgeH(Axis axis) override;
 
 		// Z端部の電界を取得する
-		void getEdgeE(std::vector<real> *top_ex, std::vector<real> *top_ey, std::vector<real> *bottom_ez) const override;
+		void getEdgeE(const real **top_ex, const real **top_ey, const real **bottom_ez) const override;
 
 		// Z端部の電界を設定する
-		void setEdgeE(const std::vector<real> *bottom_ex, const std::vector<real> *bottom_ey, const std::vector<real> *top_ez) override;
+		void setEdgeE(const real *bottom_ex, const real *bottom_ey, const real *top_ez) override;
 
 		// Z端部の磁界を取得する
-		void getEdgeH(std::vector<real> *bottom_hx, std::vector<real> *bottom_hy, std::vector<real> *top_hz) const override;
+		void getEdgeH(const real **bottom_hx, const real **bottom_hy, const real **top_hz) const override;
 
 		// Z端部の磁界を設定する
-		void setEdgeH(const std::vector<real> *top_hx, const std::vector<real> *top_hy, const std::vector<real> *bottom_hz) override;
+		void setEdgeH(const real *top_hx, const real *top_hy, const real *bottom_hz) override;
 		
 	protected:
 		// 時間ドメインプローブの位置の電磁界を励振する

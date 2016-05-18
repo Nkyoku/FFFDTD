@@ -561,64 +561,58 @@ namespace FFFDTD{
 	}
 
 	// Z端部の電界を取得する
-	void FFSolverCPU::getEdgeE(std::vector<real> *top_ex, std::vector<real> *top_ey, std::vector<real> *bottom_ez) const{
+	void FFSolverCPU::getEdgeE(const real **top_ex, const real **top_ey, const real **bottom_ez) const{
 		const index_t Z = (m_Size.x + 1) * (m_Size.y + 1);
 		if (top_ex != nullptr){
-			top_ex->resize(Z);
-			memcpy(top_ex->data(), m_Ex.data() + Z * m_Size.z, sizeof(real) * Z);
+			*top_ex = m_Ex.data() + Z * m_Size.z;
 		}
 		if (top_ey != nullptr){
-			top_ey->resize(Z);
-			memcpy(top_ey->data(), m_Ey.data() + Z * m_Size.z, sizeof(real) * Z);
+			*top_ey = m_Ey.data() + Z * m_Size.z;
 		}
 		if (bottom_ez != nullptr){
-			bottom_ez->resize(Z);
-			memcpy(bottom_ez->data(), m_Ez.data(), sizeof(real) * Z);
+			*bottom_ez = m_Ez.data();
 		}
 	}
 
 	// Z端部の電界を設定する
-	void FFSolverCPU::setEdgeE(const std::vector<real> *bottom_ex, const std::vector<real> *bottom_ey, const std::vector<real> *top_ez){
+	void FFSolverCPU::setEdgeE(const real *bottom_ex, const real *bottom_ey, const real *top_ez){
 		const index_t Z = (m_Size.x + 1) * (m_Size.y + 1);
 		if (bottom_ex != nullptr){
-			memcpy(m_Ex.data(), bottom_ex->data(), sizeof(real) * Z);
+			memcpy(m_Ex.data(), bottom_ex, sizeof(real) * Z);
 		}
 		if (bottom_ey != nullptr){
-			memcpy(m_Ey.data(), bottom_ey->data(), sizeof(real) * Z);
+			memcpy(m_Ey.data(), bottom_ey, sizeof(real) * Z);
 		}
 		if (top_ez != nullptr){
-			memcpy(m_Ez.data() + Z * m_Size.z, top_ez->data(), sizeof(real) * Z);
+			memcpy(m_Ez.data() + Z * m_Size.z, top_ez, sizeof(real) * Z);
 		}
 	}
 
 	// Z端部の磁界を取得する
-	void FFSolverCPU::getEdgeH(std::vector<real> *bottom_hx, std::vector<real> *bottom_hy, std::vector<real> *top_hz) const{
+	void FFSolverCPU::getEdgeH(const real **bottom_hx, const real **bottom_hy, const real **top_hz) const{
 		const index_t Z = (m_Size.x + 1) * (m_Size.y + 1);
 		if (bottom_hx != nullptr){
-			bottom_hx->resize(Z);
-			memcpy(bottom_hx->data(), m_Ex.data(), sizeof(real) * Z);
+			*bottom_hx = m_Ex.data();
 		}
 		if (bottom_hy != nullptr){
-			bottom_hy->resize(Z);
-			memcpy(bottom_hy->data(), m_Ey.data(), sizeof(real) * Z);
+			*bottom_hy = m_Ey.data();
 		}
 		if (top_hz != nullptr){
-			top_hz->resize(Z);
-			memcpy(top_hz->data(), m_Hz.data() + Z * m_Size.z, sizeof(real) * Z);
+			*top_hz = m_Hz.data() + Z * m_Size.z;
 		}
 	}
 
 	// Z端部の磁界を設定する
-	void FFSolverCPU::setEdgeH(const std::vector<real> *top_hx, const std::vector<real> *top_hy, const std::vector<real> *bottom_hz){
+	void FFSolverCPU::setEdgeH(const real *top_hx, const real *top_hy, const real *bottom_hz){
 		const index_t Z = (m_Size.x + 1) * (m_Size.y + 1);
 		if (top_hx != nullptr){
-			memcpy(m_Hx.data() + Z * m_Size.z, top_hx->data(), sizeof(real) * Z);
+			memcpy(m_Hx.data() + Z * m_Size.z, top_hx, sizeof(real) * Z);
 		}
 		if (top_hy != nullptr){
-			memcpy(m_Hy.data() + Z * m_Size.z, top_hy->data(), sizeof(real) * Z);
+			memcpy(m_Hy.data() + Z * m_Size.z, top_hy, sizeof(real) * Z);
 		}
 		if (bottom_hz != nullptr){
-			memcpy(m_Hz.data(), bottom_hz->data(), sizeof(real) * Z);
+			memcpy(m_Hz.data(), bottom_hz, sizeof(real) * Z);
 		}
 	}
 

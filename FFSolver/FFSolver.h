@@ -68,6 +68,11 @@ namespace FFFDTD{
 		// デストラクタ
 		virtual ~FFSolver(){}
 
+		// 空間のサイズを取得する
+		const index3_t& getSize(void) const{
+			return m_Size;
+		}
+
 		// 電界・磁界の絶対合計値を計算する
 		virtual dvec2 calcTotalEM(void) = 0;
 
@@ -106,16 +111,16 @@ namespace FFFDTD{
 		virtual void exchangeEdgeH(Axis axis) = 0;
 
 		// Z端部の電界を取得する
-		virtual void getEdgeE(std::vector<real> *top_ex, std::vector<real> *top_ey, std::vector<real> *bottom_ez) const = 0;
+		virtual void getEdgeE(const real **top_ex, const real **top_ey, const real **bottom_ez) const = 0;
 		
 		// Z端部の電界を設定する
-		virtual void setEdgeE(const std::vector<real> *bottom_ex, const std::vector<real> *bottom_ey, const std::vector<real> *top_ez) = 0;
+		virtual void setEdgeE(const real *bottom_ex, const real *bottom_ey, const real *top_ez) = 0;
 
 		// Z端部の磁界を取得する
-		virtual void getEdgeH(std::vector<real> *bottom_hx, std::vector<real> *bottom_hy, std::vector<real> *top_hz) const = 0;
+		virtual void getEdgeH(const real **bottom_hx, const real **bottom_hy, const real **top_hz) const = 0;
 
 		// Z端部の磁界を設定する
-		virtual void setEdgeH(const std::vector<real> *top_hx, const std::vector<real> *top_hy, const std::vector<real> *bottom_hz) = 0;
+		virtual void setEdgeH(const real *top_hx, const real *top_hy, const real *bottom_hz) = 0;
 
 	protected:
 		// プローブの観測値を取得する

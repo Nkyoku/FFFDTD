@@ -100,7 +100,15 @@ int main(int argc, char *argv[]){
 				dvec2 total = solver->calcTotalEM();
 				printf("Step%d : E=%e, H=%e\n", cnt, total.x, total.y);
 			}
-			situation.stepSolver();
+			bool result;
+			result = situation.executeSolverStep1();
+			if (result == false){
+				break;
+			}
+			situation.executeSolverStep2();
+			situation.executeSolverStep3();
+			situation.executeSolverStep4();
+			situation.executeSolverStep5();
 		}
 
 		auto time_3 = std::chrono::system_clock::now();

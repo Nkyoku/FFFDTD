@@ -65,8 +65,8 @@ namespace FFFDTD{
 	}
 	
 	// 電磁界成分を格納するメモリーを確保し初期化する
-	void FFSolverCPU::initializeMemory(const index3_t &size, const index3_t &normal_offset, const index3_t &normal_size){
-		FFSolver::initializeMemory(size, normal_offset, normal_size);
+	void FFSolverCPU::initializeMemory(const index3_t &size, const index3_t &offset_m, const index3_t &offset_n, const index3_t &range_m, const index3_t &range_n){
+		FFSolver::initializeMemory(size, offset_m, offset_n, range_m, range_n);
 
 		// メモリーを確保する
 		size_t volume = (size_t)(size.x + 1) * (size_t)(size.y + 1) * (size_t)(size.z + 1);
@@ -564,10 +564,10 @@ namespace FFFDTD{
 	void FFSolverCPU::getEdgeE(const real **top_ex, const real **top_ey, const real **bottom_ez) const{
 		const index_t Z = (m_Size.x + 1) * (m_Size.y + 1);
 		if (top_ex != nullptr){
-			*top_ex = m_Ex.data() + Z * (m_Size.z - 1);
+			*top_ex = m_Ex.data() + Z * m_Size.z;
 		}
 		if (top_ey != nullptr){
-			*top_ey = m_Ey.data() + Z * (m_Size.z - 1);
+			*top_ey = m_Ey.data() + Z * m_Size.z;
 		}
 		if (bottom_ez != nullptr){
 			*bottom_ez = m_Ez.data();
@@ -598,7 +598,7 @@ namespace FFFDTD{
 			*bottom_hy = m_Hy.data();
 		}
 		if (top_hz != nullptr){
-			*top_hz = m_Hz.data() + Z * (m_Size.z - 1);
+			*top_hz = m_Hz.data() + Z * m_Size.z;
 		}
 	}
 

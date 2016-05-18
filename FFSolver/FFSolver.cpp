@@ -19,20 +19,12 @@ namespace FFFDTD{
 	}
 
 	// 電磁界成分を格納するメモリーを確保し初期化する
-	void FFSolver::initializeMemory(const index3_t &size, const index3_t &normal_offset, const index3_t &normal_size){
+	void FFSolver::initializeMemory(const index3_t &size, const index3_t &offset_m, const index3_t &offset_n, const index3_t &range_m, const index3_t &range_n){
 		m_Size = size;
-		m_StartM.x = normal_offset.x;
-		m_StartN.x = normal_offset.x + 1;
-		m_StartM.y = normal_offset.y;
-		m_StartN.y = normal_offset.y + 1;
-		m_StartM.z = normal_offset.z;
-		m_StartN.z = normal_offset.z + 1;
-		m_RangeM.x = normal_size.x;
-		m_RangeN.x = normal_size.x;
-		m_RangeM.y = normal_size.y;
-		m_RangeN.y = normal_size.y;
-		m_RangeM.z = normal_size.z;
-		m_RangeN.z = normal_size.z;
+		m_StartM = offset_m;
+		m_StartN = offset_n;
+		m_RangeM = range_m;
+		m_RangeN = range_n;
 	}
 
 	// 係数インデックスを格納する

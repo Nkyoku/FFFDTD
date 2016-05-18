@@ -688,28 +688,41 @@ namespace FFFDTD{
 		// 解析空間の大きさを計算する
 		// Mxyz  : セル数
 		// Nxyz  : グリッド本数(Mxyz+1)
-		// PMxyz : 周期境界条件の余剰セルを含めたセル数
-		// PNxyz : 周期境界条件の余剰セルを含めたグリッド本数(PMxyz+1)
-		index_t Mx = m_Size.x;
-		index_t My = m_Size.y;
-		index_t Mz = m_LocalSizeZ;
-		index_t Nx = Mx + 1;
-		index_t Ny = My + 1;
-		index_t Nz = Mz + 1;
-		index_t PMx = Mx + (isConnectedX() ? 1 : 0);
-		index_t PMy = My + (isConnectedY() ? 1 : 0);
-		index_t PMz = Mz + (isConnectedZ() ? 1 : 0);
-		index_t PNx = PMx + 1;
-		index_t PNy = PMy + 1;
-		index_t PNz = PMz + 1;
-		index_t Lx = m_BC.pmlL.x, Ly = m_BC.pmlL.y, Lz = m_BC.pmlL.z;
+		// VNxyz : 有効なグリッド本数
+		const index_t Mx = m_Size.x;
+		const index_t My = m_Size.y;
+		const index_t Mz = m_LocalSizeZ;
+		const index_t Nx = Mx + 1;
+		const index_t Ny = My + 1;
+		const index_t Nz = Mz + 1;
+		const index_t VNx = Nx - (isConnectedX() ? 0 : 1);
+		const index_t VNy = Ny - (isConnectedY() ? 0 : 1);
+		const index_t VNz = Nz - (isConnectedZ() ? 0 : 1);
+		const index_t Lx = m_BC.pmlL.x, Ly = m_BC.pmlL.y, Lz = m_BC.pmlL.z;
+		m_CountPerSlice = (Mx + 1) * (My + 1);
 
+		// 通常空間の計算領域を求める
+		const index_t x_start_m = Lx;
+		const index_t y_start_m = Ly;
+		const index_t z_start_m = (m_LocalOffsetZ < Lz) ? (Lz - m_LocalOffsetZ) : 0;
+		const index_t x_start_n = x_start_m + 1;
+		const index_t y_start_n = y_start_m + 1;
+		const index_t z_start_n = z_start_m + 1;
+		const index_t x_end_m = Mx - Lx;
+		const index_t x_end_n = Nx - Lx - (isConnectedX() ? 0 : 1);
+		const index_t y_end_m = My - Ly;
+		const index_t y_end_n = Ny - Ly - (isConnectedY() ? 0 : 1);
+		const index_t z_end_m = std::min(m_LocalSizeZ, m_Size.z - Lz - m_LocalOffsetZ);
+		const index_t z_end_n = std::min(m_LocalSizeZ + 1, m_Size.z + 1 - Lz - m_LocalOffsetZ) - (isConnectedZ() ? 0 : 1);
+		
 		// ソルバーにメモリーを確保させる
-		index_t z_start = (m_LocalOffsetZ < Lz) ? (Lz - m_LocalOffsetZ) : 0;
-		index_t z_end = std::min(m_LocalSizeZ, m_Size.z - Lz - m_LocalOffsetZ);
-		solver->initializeMemory(index3_t(PMx, PMy, PMz), index3_t(Lx, Ly, z_start), index3_t(PMx - 2 * Lx, PMy - 2 * Ly, z_end - z_start));
-		m_CountPerSlice = (PMx + 1) * (PMy + 1);
-
+		solver->initializeMemory(
+			index3_t(Mx, My, Mz),
+			index3_t(x_start_m, y_start_m, z_start_m),
+			index3_t(x_start_n, y_start_n, z_start_n),
+			index3_t(x_end_m - x_start_m, y_end_m - y_start_m, z_end_m - z_start_m),
+			index3_t(x_end_n - x_start_n, y_end_n - y_start_n, z_end_n - z_start_n));
+		
 		// 係数リスト
 		std::vector<rvec2> coef2_list(1, rvec2(0.0, 0.0));
 		std::vector<rvec3> coef3_list(1, rvec3(0.0, 0.0, 0.0));
@@ -770,31 +783,31 @@ namespace FFFDTD{
 			// Dx,Exに対する係数を計算する
 #pragma omp section
 			{
-				std::vector<cindex_t> normal_cindex(PNx * PNy * PNz, pec_id);
+				std::vector<cindex_t> normal_cindex(Nx * Ny * Nz, pec_id);
 				std::vector<cindex2_t> pml_cindex;
 				std::vector<index_t> pml_index;
-				for (index_t ilz = 1; ilz < (PNz - 1); ilz++){
+				for (index_t ilz = 1; ilz < VNz; ilz++){
 					index_t iz = m_LocalOffsetZ + ilz;
-					for (index_t iy = 1; iy < (PNy - 1); iy++){
+					for (index_t iy = 1; iy < VNy; iy++){
 						for (index_t ix = 0; ix < Mx; ix++){
 							double dy = m_GridY.mwidth(iy);
 							double dz = m_GridZ.mwidth(iz);
 							FFMaterial mat;
 							bool pec = getMaterialEx(index3_t(ix, iy, iz), &mat);
-							if ((iz <= Lz) || (((Nz - Lz - 1) < iz) && (0 < Lz)) ||
-								(iy <= Ly) || (((Ny - Ly - 1) < iy) && (0 < Ly)) ||
-								(ix < Lx) || ((Mx - Lx) <= ix))
+							if ((ilz < z_start_n) || (z_end_n <= ilz) ||
+								(iy < y_start_n) || (y_end_n <= iy) ||
+								(ix < x_start_m) || (x_end_m <= ix))
 							{
 								double sigma_y = (0 < Ly) ? calcSigma(calcSigmaMax(mat.eps(), dy, Ly), Ly, Ny - Ly - 1, iy, Ly) : 0.0;
 								double sigma_z = (0 < Lz) ? calcSigma(calcSigmaMax(mat.eps(), dz, Lz), Lz, Nz - Lz - 1, iz, Lz) : 0.0;
 								pml_cindex.push_back(cindex2_t(
 									registerCoef2(FFMaterial::calcDCoefPML(mat.eps_r(), sigma_y, Dt, dy)),
 									registerCoef2(FFMaterial::calcDCoefPML(mat.eps_r(), sigma_z, Dt, dz))));
-								pml_index.push_back(ix + PNx * (iy + PNy * ilz));
-								normal_cindex[ix + PNx * (iy + PNy * ilz)] = pec ? pec_id : registerCoef2(mat.calcECoefPML(Dt));
+								pml_index.push_back(ix + Nx * (iy + Ny * ilz));
+								normal_cindex[ix + Nx * (iy + Ny * ilz)] = pec ? pec_id : registerCoef2(mat.calcECoefPML(Dt));
 							}
 							else{
-								normal_cindex[ix + PNx * (iy + PNy * ilz)] = pec ? pec_id : registerCoef3(mat.calcECoef(Dt, dy, dz));
+								normal_cindex[ix + Nx * (iy + Ny * ilz)] = pec ? pec_id : registerCoef3(mat.calcECoef(Dt, dy, dz));
 							}
 						}
 					}
@@ -807,31 +820,31 @@ namespace FFFDTD{
 			// Dy,Eyに対する係数を計算する
 #pragma omp section
 			{
-				std::vector<cindex_t> normal_cindex(PNx * PNy * PNz, pec_id);
+				std::vector<cindex_t> normal_cindex(Nx * Ny * Nz, pec_id);
 				std::vector<cindex2_t> pml_cindex;
 				std::vector<index_t> pml_index;
-				for (index_t ilz = 1; ilz < (PNz - 1); ilz++){
+				for (index_t ilz = 1; ilz < VNz; ilz++){
 					index_t iz = m_LocalOffsetZ + ilz;
 					for (index_t iy = 0; iy < My; iy++){
-						for (index_t ix = 1; ix < (PNx - 1); ix++){
+						for (index_t ix = 1; ix < VNx; ix++){
 							double dz = m_GridZ.mwidth(iz);
 							double dx = m_GridX.mwidth(ix);
 							FFMaterial mat;
 							bool pec = getMaterialEy(index3_t(ix, iy, iz), &mat);
-							if ((iz <= Lz) || (((Nz - Lz - 1) < iz) && (0 < Lz)) ||
-								(iy < Ly) || ((My - Ly) <= iy) ||
-								(ix <= Lx) || (((Nx - Lx - 1) < ix) && (0 < Lx)))
+							if ((ilz < z_start_n) || (z_end_n <= ilz) ||
+								(iy < y_start_m) || (y_end_m <= iy) ||
+								(ix < x_start_n) || (x_end_n <= ix))
 							{
 								double sigma_z = (0 < Lz) ? calcSigma(calcSigmaMax(mat.eps(), dz, Lz), Lz, Nz - Lz - 1, iz, Lz) : 0.0;
 								double sigma_x = (0 < Lx) ? calcSigma(calcSigmaMax(mat.eps(), dx, Lx), Lx, Nx - Lx - 1, ix, Lx) : 0.0;
 								pml_cindex.push_back(cindex2_t(
 									registerCoef2(FFMaterial::calcDCoefPML(mat.eps_r(), sigma_z, Dt, dz)),
 									registerCoef2(FFMaterial::calcDCoefPML(mat.eps_r(), sigma_x, Dt, dx))));
-								pml_index.push_back(ix + PNx * (iy + PNy * ilz));
-								normal_cindex[ix + PNx * (iy + PNy * ilz)] = pec ? pec_id : registerCoef2(mat.calcECoefPML(Dt));
+								pml_index.push_back(ix + Nx * (iy + Ny * ilz));
+								normal_cindex[ix + Nx * (iy + Ny * ilz)] = pec ? pec_id : registerCoef2(mat.calcECoefPML(Dt));
 							}
 							else{
-								normal_cindex[ix + PNx * (iy + PNy * ilz)] = pec ? pec_id : registerCoef3(mat.calcECoef(Dt, dz, dx));
+								normal_cindex[ix + Nx * (iy + Ny * ilz)] = pec ? pec_id : registerCoef3(mat.calcECoef(Dt, dz, dx));
 							}
 						}
 					}
@@ -844,31 +857,31 @@ namespace FFFDTD{
 			// Dz,Ezに対する係数を計算する
 #pragma omp section
 			{
-				std::vector<cindex_t> normal_cindex(PNx * PNy * PNz, pec_id);
+				std::vector<cindex_t> normal_cindex(Nx * Ny * Nz, pec_id);
 				std::vector<cindex2_t> pml_cindex;
 				std::vector<index_t> pml_index;
 				for (index_t ilz = 0; ilz < Mz; ilz++){
 					index_t iz = m_LocalOffsetZ + ilz;
-					for (index_t iy = 1; iy < (PNy - 1); iy++){
-						for (index_t ix = 1; ix < (PNx - 1); ix++){
+					for (index_t iy = 1; iy < VNy; iy++){
+						for (index_t ix = 1; ix < VNx; ix++){
 							double dx = m_GridX.mwidth(ix);
 							double dy = m_GridY.mwidth(iy);
 							FFMaterial mat;
 							bool pec = getMaterialEz(index3_t(ix, iy, iz), &mat);
-							if ((iz < Lz) || ((Mz - Lz) <= iz) ||
-								(iy <= Ly) || (((Ny - Ly - 1) < iy) && (0 < Ly)) ||
-								(ix <= Lx) || (((Nx - Lx - 1) < ix) && (0 < Lx)))
+							if ((ilz < z_start_m) || (z_end_m <= ilz) ||
+								(iy < y_start_n) || (y_end_n <= iy) ||
+								(ix < x_start_n) || (x_end_n <= ix))
 							{
 								double sigma_x = (0 < Lx) ? calcSigma(calcSigmaMax(mat.eps(), dx, Lx), Lx, Nx - Lx - 1, ix, Lx) : 0.0;
 								double sigma_y = (0 < Ly) ? calcSigma(calcSigmaMax(mat.eps(), dy, Ly), Ly, Ny - Ly - 1, iy, Ly) : 0.0;
 								pml_cindex.push_back(cindex2_t(
 									registerCoef2(FFMaterial::calcDCoefPML(mat.eps_r(), sigma_x, Dt, dx)),
 									registerCoef2(FFMaterial::calcDCoefPML(mat.eps_r(), sigma_y, Dt, dy))));
-								pml_index.push_back(ix + PNx * (iy + PNy * ilz));
-								normal_cindex[ix + PNx * (iy + PNy * ilz)] = pec ? pec_id : registerCoef2(mat.calcECoefPML(Dt));
+								pml_index.push_back(ix + Nx * (iy + Ny * ilz));
+								normal_cindex[ix + Nx * (iy + Ny * ilz)] = pec ? pec_id : registerCoef2(mat.calcECoefPML(Dt));
 							}
 							else{
-								normal_cindex[ix + PNx * (iy + PNy * ilz)] = pec ? pec_id : registerCoef3(mat.calcECoef(Dt, dx, dy));
+								normal_cindex[ix + Nx * (iy + Ny * ilz)] = pec ? pec_id : registerCoef3(mat.calcECoef(Dt, dx, dy));
 							}
 						}
 					}
@@ -881,29 +894,29 @@ namespace FFFDTD{
 			// Hxに対する係数を計算する
 #pragma omp section
 			{
-				std::vector<cindex_t> normal_cindex(PNx * PNy * PNz, pec_id);
+				std::vector<cindex_t> normal_cindex(Nx * Ny * Nz, pec_id);
 				std::vector<cindex2_t> pml_cindex;
 				std::vector<index_t> pml_index;
 				for (index_t ilz = 0; ilz < Mz; ilz++){
 					index_t iz = m_LocalOffsetZ + ilz;
 					for (index_t iy = 0; iy < My; iy++){
-						for (index_t ix = 1; ix < (PNx - 1); ix++){
+						for (index_t ix = 1; ix < VNx; ix++){
 							double dy = m_GridY.width(iy);
 							double dz = m_GridZ.width(iz);
 							FFMaterial mat;
 							getMaterialHx(index3_t(ix, iy, iz), &mat);
-							if ((iz < Lz) || ((Mz - Lz) <= iz) ||
-								(iy < Ly) || ((My - Ly) <= iy) ||
-								(ix <= Lx) || (((Nx - Lx - 1) < ix) && (0 < Lx)))
+							if ((ilz < z_start_m) || (z_end_m <= ilz) ||
+								(iy < y_start_m) || (y_end_m <= iy) ||
+								(ix < x_start_n) || (x_end_n <= ix))
 							{
 								double sigma_m_y = (0 < Ly) ? calcSigma(calcSigmaMax(mat.mu(), dy, Ly), Ly, Ny - Ly - 1, iy + 0.5, Ly) : 0.0;
 								double sigma_m_z = (0 < Lz) ? calcSigma(calcSigmaMax(mat.mu(), dz, Lz), Lz, Nz - Lz - 1, iz + 0.5, Lz) : 0.0;
 								pml_cindex.push_back(cindex2_t(
 									registerCoef2(FFMaterial::calcHCoefPML(mat.mu_r(), sigma_m_y, Dt, dy)),
 									registerCoef2(FFMaterial::calcHCoefPML(mat.mu_r(), sigma_m_z, Dt, dz))));
-								pml_index.push_back(ix + PNx * (iy + PNy * ilz));
+								pml_index.push_back(ix + Nx * (iy + Ny * ilz));
 							}
-							normal_cindex[ix + PNx * (iy + PNy * ilz)] = registerCoef3(mat.calcHCoef(Dt, dy, dz));
+							normal_cindex[ix + Nx * (iy + Ny * ilz)] = registerCoef3(mat.calcHCoef(Dt, dy, dz));
 						}
 					}
 				}
@@ -915,29 +928,29 @@ namespace FFFDTD{
 			// Hyに対する係数を計算する
 #pragma omp section
 			{
-				std::vector<cindex_t> normal_cindex(PNx * PNy * PNz, pec_id);
+				std::vector<cindex_t> normal_cindex(Nx * Ny * Nz, pec_id);
 				std::vector<cindex2_t> pml_cindex;
 				std::vector<index_t> pml_index;
 				for (index_t ilz = 0; ilz < Mz; ilz++){
 					index_t iz = m_LocalOffsetZ + ilz;
-					for (index_t iy = 1; iy < (PNy - 1); iy++){
+					for (index_t iy = 1; iy < VNy; iy++){
 						for (index_t ix = 0; ix < Mx; ix++){
 							double dz = m_GridZ.width(iz);
 							double dx = m_GridX.width(ix);
 							FFMaterial mat;
 							getMaterialHy(index3_t(ix, iy, iz), &mat);
-							if ((iz < Lz) || ((Mz - Lz) <= iz) ||
-								(iy <= Ly) || (((Ny - Ly - 1) < iy) && (0 < Ly)) ||
-								(ix < Lx) || ((Mx - Lx) <= ix))
+							if ((ilz < z_start_m) || (z_end_m <= ilz) ||
+								(iy < y_start_n) || (y_end_n <= iy) ||
+								(ix < x_start_m) || (x_end_m <= ix))
 							{
 								double sigma_m_z = (0 < Lz) ? calcSigma(calcSigmaMax(mat.mu(), dz, Lz), Lz, Nz - Lz - 1, iz + 0.5, Lz) : 0.0;
 								double sigma_m_x = (0 < Lx) ? calcSigma(calcSigmaMax(mat.mu(), dx, Lx), Lx, Nx - Lx - 1, ix + 0.5, Lx) : 0.0;
 								pml_cindex.push_back(cindex2_t(
 									registerCoef2(FFMaterial::calcHCoefPML(mat.mu_r(), sigma_m_z, Dt, dz)),
 									registerCoef2(FFMaterial::calcHCoefPML(mat.mu_r(), sigma_m_x, Dt, dx))));
-								pml_index.push_back(ix + PNx * (iy + PNy * ilz));
+								pml_index.push_back(ix + Nx * (iy + Ny * ilz));
 							}
-							normal_cindex[ix + PNx * (iy + PNy * ilz)] = registerCoef3(mat.calcHCoef(Dt, dz, dx));
+							normal_cindex[ix + Nx * (iy + Ny * ilz)] = registerCoef3(mat.calcHCoef(Dt, dz, dx));
 						}
 					}
 				}
@@ -949,10 +962,10 @@ namespace FFFDTD{
 			// Hzに対する係数を計算する
 #pragma omp section
 			{
-				std::vector<cindex_t> normal_cindex(PNx * PNy * PNz, pec_id);
+				std::vector<cindex_t> normal_cindex(Nx * Ny * Nz, pec_id);
 				std::vector<cindex2_t> pml_cindex;
 				std::vector<index_t> pml_index;
-				for (index_t ilz = 1; ilz < (PNz - 1); ilz++){
+				for (index_t ilz = 1; ilz < VNz; ilz++){
 					index_t iz = m_LocalOffsetZ + ilz;
 					for (index_t iy = 0; iy < My; iy++){
 						for (index_t ix = 0; ix < Mx; ix++){
@@ -960,18 +973,18 @@ namespace FFFDTD{
 							double dy = m_GridY.width(iy);
 							FFMaterial mat;
 							getMaterialHz(index3_t(ix, iy, iz), &mat);
-							if ((iz <= Lz) || (((Nz - Lz - 1) < iz) && (0 < Lz)) ||
-								(iy < Ly) || ((My - Ly) <= iy) ||
-								(ix < Lx) || ((Mx - Lx) <= ix))
+							if ((ilz < z_start_n) || (z_end_n <= ilz) ||
+								(iy < y_start_m) || (y_end_m <= iy) ||
+								(ix < x_start_m) || (x_end_m <= ix))
 							{
 								double sigma_m_x = (0 < Lx) ? calcSigma(calcSigmaMax(mat.mu(), dx, Lx), Lx, Nx - Lx - 1, ix + 0.5, Lx) : 0.0;
 								double sigma_m_y = (0 < Ly) ? calcSigma(calcSigmaMax(mat.mu(), dy, Ly), Ly, Ny - Ly - 1, iy + 0.5, Ly) : 0.0;
 								pml_cindex.push_back(cindex2_t(
 									registerCoef2(FFMaterial::calcHCoefPML(mat.mu_r(), sigma_m_x, Dt, dx)),
 									registerCoef2(FFMaterial::calcHCoefPML(mat.mu_r(), sigma_m_y, Dt, dy))));
-								pml_index.push_back(ix + PNx * (iy + PNy * ilz));
+								pml_index.push_back(ix + Nx * (iy + Ny * ilz));
 							}
-							normal_cindex[ix + PNx * (iy + PNy * ilz)] = registerCoef3(mat.calcHCoef(Dt, dx, dy));
+							normal_cindex[ix + Nx * (iy + Ny * ilz)] = registerCoef3(mat.calcHCoef(Dt, dx, dy));
 						}
 					}
 				}

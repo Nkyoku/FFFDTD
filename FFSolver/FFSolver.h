@@ -77,7 +77,7 @@ namespace FFFDTD{
 		virtual dvec2 calcTotalEM(void) = 0;
 
 		// 電磁界成分を格納するメモリーを確保し初期化する
-		virtual void initializeMemory(const index3_t &size, const index3_t &normal_offset, const index3_t &normal_size);
+		virtual void initializeMemory(const index3_t &size, const index3_t &offset_m, const index3_t &offset_n, const index3_t &range_m, const index3_t &range_n);
 
 		// 係数インデックスを格納する
 		virtual void storeCoefficientIndex(EMType type, const std::vector<cindex_t> &normal_cindex, const std::vector<cindex2_t> &pml_cindex, const std::vector<index_t> &pml_index);

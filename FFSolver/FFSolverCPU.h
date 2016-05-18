@@ -90,5 +90,48 @@ namespace FFFDTD{
 	protected:
 		// 時間ドメインプローブの位置の電磁界を励振する
 		void setTDProbeValue(oindex_t id, real value) override;
+
+	public:
+		// デバッグ用に指定した座標のEx成分を取得する
+		real getExDebug(index_t x, index_t y, index_t z) const{
+			const index_t Y = m_Size.x + 1;
+			const index_t Z = (m_Size.x + 1) * (m_Size.y + 1);
+			return m_Ex[x + Y * y + Z * z];
+		}
+
+		// デバッグ用に指定した座標のEy成分を取得する
+		real getEyDebug(index_t x, index_t y, index_t z) const{
+			const index_t Y = m_Size.x + 1;
+			const index_t Z = (m_Size.x + 1) * (m_Size.y + 1);
+			return m_Ey[x + Y * y + Z * z];
+		}
+
+		// デバッグ用に指定した座標のEz成分を取得する
+		real getEzDebug(index_t x, index_t y, index_t z) const{
+			const index_t Y = m_Size.x + 1;
+			const index_t Z = (m_Size.x + 1) * (m_Size.y + 1);
+			return m_Ez[x + Y * y + Z * z];
+		}
+
+		// デバッグ用に指定した座標のHx成分を取得する
+		real getHxDebug(index_t x, index_t y, index_t z) const{
+			const index_t Y = m_Size.x + 1;
+			const index_t Z = (m_Size.x + 1) * (m_Size.y + 1);
+			return m_Hx[x + Y * y + Z * z];
+		}
+
+		// デバッグ用に指定した座標のHy成分を取得する
+		real getHyDebug(index_t x, index_t y, index_t z) const{
+			const index_t Y = m_Size.x + 1;
+			const index_t Z = (m_Size.x + 1) * (m_Size.y + 1);
+			return m_Hy[x + Y * y + Z * z];
+		}
+
+		// デバッグ用に指定した座標のHz成分を取得する
+		real getHzDebug(index_t x, index_t y, index_t z) const{
+			const index_t Y = m_Size.x + 1;
+			const index_t Z = (m_Size.x + 1) * (m_Size.y + 1);
+			return m_Hz[x + Y * y + Z * z];
+		}
 	};
 }

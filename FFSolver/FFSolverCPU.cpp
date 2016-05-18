@@ -564,10 +564,10 @@ namespace FFFDTD{
 	void FFSolverCPU::getEdgeE(const real **top_ex, const real **top_ey, const real **bottom_ez) const{
 		const index_t Z = (m_Size.x + 1) * (m_Size.y + 1);
 		if (top_ex != nullptr){
-			*top_ex = m_Ex.data() + Z * m_Size.z;
+			*top_ex = m_Ex.data() + Z * (m_Size.z - 1);
 		}
 		if (top_ey != nullptr){
-			*top_ey = m_Ey.data() + Z * m_Size.z;
+			*top_ey = m_Ey.data() + Z * (m_Size.z - 1);
 		}
 		if (bottom_ez != nullptr){
 			*bottom_ez = m_Ez.data();
@@ -592,13 +592,13 @@ namespace FFFDTD{
 	void FFSolverCPU::getEdgeH(const real **bottom_hx, const real **bottom_hy, const real **top_hz) const{
 		const index_t Z = (m_Size.x + 1) * (m_Size.y + 1);
 		if (bottom_hx != nullptr){
-			*bottom_hx = m_Ex.data();
+			*bottom_hx = m_Hx.data();
 		}
 		if (bottom_hy != nullptr){
-			*bottom_hy = m_Ey.data();
+			*bottom_hy = m_Hy.data();
 		}
 		if (top_hz != nullptr){
-			*top_hz = m_Hz.data() + Z * m_Size.z;
+			*top_hz = m_Hz.data() + Z * (m_Size.z - 1);
 		}
 	}
 

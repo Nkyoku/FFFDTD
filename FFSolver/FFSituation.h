@@ -280,6 +280,9 @@ namespace FFFDTD{
 		// ソルバーにシミュレーション環境を構成する
 		void configureSolver(FFSolver *solver, double timestep, size_t max_iteration, const std::vector<double> &measure_freq);
 
+		// 電磁界の絶対合計値を計算する
+		dvec2 calcTotalEM(void);
+
 		// 計算ステップ1を実行する (給電・計測)
 		// 計算が終了したときにfalseを返す
 		bool executeSolverStep1(void);

@@ -509,6 +509,7 @@ namespace FFFDTD{
 		else{
 			// ポートを欠番とする
 			m_PortList.push_back(nullptr);
+			delete circuit;
 		}
 		return (oindex_t)(m_PortList.size() - 1);
 	}
@@ -989,8 +990,18 @@ namespace FFFDTD{
 
 		// ポートの使うメモリーを確保する
 		for (auto port : m_PortList){
-			port->allocate(m_NT, m_Timestep);
+			if (port != nullptr){
+				port->allocate(m_NT, m_Timestep);
+			}
 		}
+	}
+
+	// 電磁界の絶対合計値を計算する
+	dvec2 FFSituation::calcTotalEM(void){
+		if (m_Solver == nullptr){
+			throw;
+		}
+		return m_Solver->calcTotalEM();
 	}
 
 	// 計算ステップ1を実行する (給電・計測)
@@ -1029,7 +1040,7 @@ namespace FFFDTD{
 	// 計算ステップ3を実行する (磁界の共有)
 	void FFSituation::executeSolverStep3(FFSituation *bottom, FFSituation *top, int bottom_rank, int top_rank){
 		// Z端部の磁界を共有する
-		if ((m_LocalSizeZ != m_Size.z) || isConnectedZ()){
+		if (m_LocalSizeZ != m_Size.z){
 			// 端部の磁界を取得する
 			const real *tx_hx, *tx_hy, *tx_hz;
 			real *rx_hx = nullptr, *rx_hy = nullptr, *rx_hz = nullptr;
@@ -1100,7 +1111,7 @@ namespace FFFDTD{
 	// 計算ステップ5を実行する (電界の共有)
 	void FFSituation::executeSolverStep5(FFSituation *bottom, FFSituation *top, int bottom_rank, int top_rank){
 		// Z端部の電界を共有する
-		if ((m_LocalSizeZ != m_Size.z) && isConnectedZ()){
+		if (m_LocalSizeZ != m_Size.z){
 			// 端部の磁界を取得する
 			const real *tx_ex, *tx_ey, *tx_ez;
 			real *rx_ex = nullptr, *rx_ey = nullptr, *rx_ez = nullptr;

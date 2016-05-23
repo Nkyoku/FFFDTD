@@ -500,7 +500,7 @@ namespace FFFDTD{
 			else if ((dir == Z_PLUS) || (dir == Z_MINUS)){
 				port->attachEProbe(placeProbe(pos, EMType::Ez, ProbeType::TD), sign * m_GridZ.iwidth(pos.z));
 				port->attachMProbe(placeProbe(index3_t(pos.x, pos.y, pos.z), EMType::Hy, ProbeType::TD), sign * m_GridY.mwidth(pos.y));
-				port->attachMProbe(placeProbe(index3_t(pos.x - 1, pos.y, pos.z - 1), EMType::Hy, ProbeType::TD), -sign * m_GridY.mwidth(pos.y));
+				port->attachMProbe(placeProbe(index3_t(pos.x - 1, pos.y, pos.z), EMType::Hy, ProbeType::TD), -sign * m_GridY.mwidth(pos.y));
 				port->attachMProbe(placeProbe(index3_t(pos.x, pos.y, pos.z), EMType::Hx, ProbeType::TD), -sign * m_GridX.mwidth(pos.x));
 				port->attachMProbe(placeProbe(index3_t(pos.x, pos.y - 1, pos.z), EMType::Hx, ProbeType::TD), sign * m_GridX.mwidth(pos.x));
 			}
@@ -1070,7 +1070,7 @@ namespace FFFDTD{
 			if (bottom != nullptr){
 				bottom->m_Solver->setEdgeH(tx_hx, tx_hy, nullptr);
 			}
-			else if (0 < bottom_rank){
+			else if (0 <= bottom_rank){
 				m_MPIBufferZ.resize(m_CountPerSlice);
 				rx_hz = m_MPIBufferZ.data();
 				MPI_Isend(tx_hx, (int)m_CountPerSlice, MPI_FLOAT, bottom_rank, (int)MPITag::Hx, MPI_COMM_WORLD, req++);
@@ -1080,7 +1080,7 @@ namespace FFFDTD{
 			if (top != nullptr){
 				top->m_Solver->setEdgeH(nullptr, nullptr, tx_hz);
 			}
-			else if (0 < top_rank){
+			else if (0 <= top_rank){
 				m_MPIBufferX.resize(m_CountPerSlice);
 				m_MPIBufferY.resize(m_CountPerSlice);
 				rx_hx = m_MPIBufferX.data();
@@ -1096,10 +1096,10 @@ namespace FFFDTD{
 				MPI_Status mpi_status[6];
 				MPI_Waitall((int)mpi_count, mpi_request, mpi_status);
 
-				if (0 < bottom_rank){
+				if (0 <= bottom_rank){
 					m_Solver->setEdgeH(nullptr, nullptr, rx_hz);
 				}
-				if (0 < top_rank){
+				if (0 <= top_rank){
 					m_Solver->setEdgeH(rx_hx, rx_hy, nullptr);
 				}
 			}
@@ -1141,7 +1141,7 @@ namespace FFFDTD{
 			if (bottom != nullptr){
 				bottom->m_Solver->setEdgeE(nullptr, nullptr, tx_ez);
 			}
-			else if (0 < bottom_rank){
+			else if (0 <= bottom_rank){
 				m_MPIBufferX.resize(m_CountPerSlice);
 				m_MPIBufferY.resize(m_CountPerSlice);
 				rx_ex = m_MPIBufferX.data();
@@ -1153,7 +1153,7 @@ namespace FFFDTD{
 			if (top != nullptr){
 				top->m_Solver->setEdgeE(tx_ex, tx_ey, nullptr);
 			}
-			else if (0 < top_rank){
+			else if (0 <= top_rank){
 				m_MPIBufferZ.resize(m_CountPerSlice);
 				rx_ez = m_MPIBufferZ.data();
 				MPI_Isend(tx_ex, (int)m_CountPerSlice, MPI_FLOAT, top_rank, (int)MPITag::Ex, MPI_COMM_WORLD, req++);
@@ -1167,10 +1167,10 @@ namespace FFFDTD{
 				MPI_Status mpi_status[6];
 				MPI_Waitall((int)mpi_count, mpi_request, mpi_status);
 
-				if (0 < bottom_rank){
+				if (0 <= bottom_rank){
 					m_Solver->setEdgeE(rx_ex, rx_ey, nullptr);
 				}
-				if (0 < top_rank){
+				if (0 <= top_rank){
 					m_Solver->setEdgeE(nullptr, nullptr, rx_ez);
 				}
 			}

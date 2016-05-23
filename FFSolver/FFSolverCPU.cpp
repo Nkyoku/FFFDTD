@@ -2,7 +2,9 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
+#ifdef _WIN32
+#include <intrin.h>
+#endif
 
 
 namespace FFFDTD{
@@ -29,6 +31,26 @@ namespace FFFDTD{
 	// デストラクタ
 	FFSolverCPU::~FFSolverCPU(){
 		
+	}
+
+	// ソルバーの名前を取得する
+	std::string FFSolverCPU::getSolverName(void) const{
+		std::string result("Generic CPU");
+#ifdef _WIN32
+		struct REG_t{
+			uint32_t eax, ebx, ecx, edx;
+		};
+		REG_t reg[3];
+		__cpuid((int*)&reg[0], 0x80000000);
+		if (0x80000002 <= reg[0].eax){
+			__cpuid((int*)&reg[0], 0x80000002);
+			__cpuid((int*)&reg[1], 0x80000003);
+			__cpuid((int*)&reg[2], 0x80000004);
+			char* p = (char*)&reg;
+			result = (char*)reg;
+		}
+#endif
+		return result;
 	}
 
 	// 電界・磁界の絶対合計値を計算する

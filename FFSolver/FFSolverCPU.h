@@ -48,6 +48,9 @@ namespace FFFDTD{
 		// デストラクタ
 		~FFSolverCPU();
 
+		// ソルバーの名前を取得する
+		std::string getSolverName(void) const override;
+
 		// 電界・磁界の絶対合計値を計算する
 		dvec2 calcTotalEM(void) override;
 

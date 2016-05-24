@@ -72,9 +72,6 @@
     <ClInclude Include="FFPointObject.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="FFProbePoint.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="FFPort.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>

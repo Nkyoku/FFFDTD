@@ -67,7 +67,10 @@ private:
 public:
 	// コンストラクタ
 	SOLVERINFO_t(void)
-		: m_Name("Unknown"), m_Rank(-1), m_Speed(0), m_Memory(0){}
+		: m_Name(), m_Rank(-1), m_Speed(0), m_Memory(0)
+	{
+		strcpy(m_Name, "Unknown");
+	}
 
 	// コンストラクタ
 	SOLVERINFO_t(const char *name, int rank, uint32_t index, uint64_t speed, uint64_t memory)
@@ -110,7 +113,7 @@ public:
 		int blocklength[5] = {sizeof(m_Name), 1, 1, 1, 1};
 		MPI_Aint displacement[5] = {offsetof(SOLVERINFO_t, m_Name), offsetof(SOLVERINFO_t, m_Rank), offsetof(SOLVERINFO_t, m_Index), offsetof(SOLVERINFO_t, m_Speed), offsetof(SOLVERINFO_t, m_Memory)};
 		MPI_Datatype type[5] = {MPI_CHAR, MPI_INT, MPI_UINT32_T, MPI_UINT64_T, MPI_UINT64_T};
-		MPI_Type_struct(5, blocklength, displacement, type, &m_MPIDataType);
+		MPI_Type_create_struct(5, blocklength, displacement, type, &m_MPIDataType);
 		MPI_Type_commit(&m_MPIDataType);
 	}
 

@@ -5,6 +5,13 @@
 #ifdef _WIN32
 #define NOMINMAX
 #include <Windows.h>
+#elif __GNUC__
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#else
+#error Not implemented
 #endif
 
 
@@ -28,8 +35,9 @@ namespace FFFDTD{
 
 		// メモリマップトファイルのハンドル
 		HANDLE m_hMap;
-#else
-#error Not implemented
+#elif __GNUC__
+		// ファイルディスクリプタ
+		int m_hFile;
 #endif
 
 	public:
@@ -43,7 +51,7 @@ namespace FFFDTD{
 		FFIStream& operator=(const FFIStream &stream);
 
 		// ファイルから入力ストリームを作成する
-		FFIStream(const wchar_t *filepath);
+		FFIStream(const char *filepath);
 		
 		// 既存のメモリーバッファから入力ストリームを作成する
 		FFIStream(const void *data, size_t length);

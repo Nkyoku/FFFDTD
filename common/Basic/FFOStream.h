@@ -25,7 +25,7 @@ namespace FFFDTD{
 
 	public:
 		// ファイルへの出力ストリームを作成する
-		FFOStream(const wchar_t *filepath);
+		FFOStream(const char *filepath);
 		
 		// メモリーバッファへの出力ストリームを作成する
 		FFOStream(const void *data, size_t length);

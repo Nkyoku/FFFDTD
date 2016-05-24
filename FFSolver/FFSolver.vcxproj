@@ -105,7 +105,6 @@
     <ClInclude Include="FFMaterial.h" />
     <ClInclude Include="FFPointObject.h" />
     <ClInclude Include="FFPort.h" />
-    <ClInclude Include="FFProbePoint.h" />
     <ClInclude Include="FFSituation.h" />
     <ClInclude Include="FFSolver.h" />
     <ClInclude Include="FFSolverCPU.h" />

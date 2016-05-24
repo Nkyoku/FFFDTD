@@ -1,10 +1,14 @@
 ﻿#include "FFSolverCPU.h"
+#include <string.h>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 #ifdef _WIN32
 #include <intrin.h>
+#elif __GNUC__
+#include <cpuid.h>
 #endif
+
 
 
 namespace FFFDTD{
@@ -17,15 +21,12 @@ namespace FFFDTD{
 	FFSolverCPU::FFSolverCPU(int number_of_threads)
 		: FFSolver()
 	{
-
 #ifdef _OPENMP
 		// 並列スレッド数を指定する
 		if (0 < number_of_threads){
 			omp_set_num_threads(number_of_threads);
 		}
 #endif
-
-
 	}
 
 	// デストラクタ
@@ -36,16 +37,25 @@ namespace FFFDTD{
 	// ソルバーの名前を取得する
 	std::string FFSolverCPU::getSolverName(void) const{
 		std::string result("Generic CPU");
-#ifdef _WIN32
 		struct REG_t{
 			uint32_t eax, ebx, ecx, edx;
 		};
 		REG_t reg[3];
+#ifdef _WIN32
 		__cpuid((int*)&reg[0], 0x80000000);
 		if (0x80000002 <= reg[0].eax){
 			__cpuid((int*)&reg[0], 0x80000002);
 			__cpuid((int*)&reg[1], 0x80000003);
 			__cpuid((int*)&reg[2], 0x80000004);
+			char* p = (char*)&reg;
+			result = (char*)reg;
+		}
+#elif __GNUC__
+		__get_cpuid(0x80000000, &reg[0].eax, &reg[0].ebx, &reg[0].ecx, &reg[0].edx);
+		if (0x80000002 <= reg[0].eax){
+			__get_cpuid(0x80000002, &reg[0].eax, &reg[0].ebx, &reg[0].ecx, &reg[0].edx);
+			__get_cpuid(0x80000003, &reg[1].eax, &reg[1].ebx, &reg[1].ecx, &reg[1].edx);
+			__get_cpuid(0x80000004, &reg[2].eax, &reg[2].ebx, &reg[2].ecx, &reg[2].edx);
 			char* p = (char*)&reg;
 			result = (char*)reg;
 		}

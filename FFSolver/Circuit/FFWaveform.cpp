@@ -1,6 +1,4 @@
-﻿#pragma once
-
-#include "FFWaveform.h"
+﻿#include "FFWaveform.h"
 #include <exprtk.hpp>
 
 

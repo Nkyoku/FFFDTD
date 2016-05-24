@@ -8,8 +8,8 @@ namespace FFFDTD{
 		: m_Head(nullptr), m_Current(nullptr), m_Tail(nullptr)
 #ifdef _WIN32
 		, m_hFile(INVALID_HANDLE_VALUE), m_hMap(NULL)
-#else
-#error Not implemented
+#elif __GNUC__
+		, m_hFile(-1)
 #endif
 	{
 
@@ -32,12 +32,12 @@ namespace FFFDTD{
 	}
 
 	// ファイルから入力ストリームを作成する
-	FFIStream::FFIStream(const wchar_t *filepath) : FFIStream(){
+	FFIStream::FFIStream(const char *filepath) : FFIStream(){
 		uint64_t length;
 #ifdef _WIN32
 		try{
 			// ファイルを開く
-			m_hFile = CreateFile(filepath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+			m_hFile = CreateFileA(filepath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 			if (m_hFile == INVALID_HANDLE_VALUE){
 				throw;
 			}
@@ -65,14 +65,42 @@ namespace FFFDTD{
 		catch (...){
 			if (m_hMap != NULL){
 				CloseHandle(m_hMap);
+				m_hMap = NULL;
 			}
 			if (m_hFile != INVALID_HANDLE_VALUE){
 				CloseHandle(m_hFile);
+				m_hFile = INVALID_HANDLE_VALUE;
 			}
 			throw;
 		}
-#else
-#error Not implemented
+#elif __GNUC__
+		// ファイルを開く
+		m_hFile = open(filepath, O_RDONLY);
+		if (m_hFile == -1){
+			throw;
+		}
+
+		try{
+			// ファイルサイズを取得する
+			struct stat result;
+			fstat(m_hFile, &result);
+			length = result.st_size;
+			if (length == 0){
+				throw;
+			}
+
+			// メモリにマップする
+			void *p;
+			p = mmap(0, (size_t)length, PROT_READ, MAP_SHARED, m_hFile, 0);
+			if (p == MAP_FAILED){
+				throw;
+			}
+			m_Head = reinterpret_cast<const uint8_t*>(p);
+		}
+		catch (...){
+			close(m_hFile);
+			m_hFile = -1;
+		}
 #endif
 		m_Current = m_Head;
 		m_Tail = m_Head + (size_t)length;
@@ -108,8 +136,15 @@ namespace FFFDTD{
 			m_hFile = INVALID_HANDLE_VALUE;
 			m_hMap = NULL;
 		}
-#else
-#error Not implemented
+#elif __GNUC__
+		if (m_Head != nullptr){
+			munmap(const_cast<uint8_t*>(m_Head), (size_t)length());
+			m_Head = nullptr;
+		}
+		if (m_hFile != -1){
+			close(m_hFile);
+			m_hFile = -1;
+		}
 #endif
 	}
 

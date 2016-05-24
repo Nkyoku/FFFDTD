@@ -13,8 +13,8 @@ namespace FFFDTD{
 	}
 
 	// ファイルから入力ストリームを作成する
-	FFOStream::FFOStream(const wchar_t *filepath) : FFOStream(){
-		m_Fp = _wfopen(filepath, L"wb");
+	FFOStream::FFOStream(const char *filepath) : FFOStream(){
+		m_Fp = fopen(filepath, "wb");
 		if (m_Fp == nullptr){
 			throw;
 		}

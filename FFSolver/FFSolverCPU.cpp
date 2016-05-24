@@ -41,7 +41,7 @@ namespace FFFDTD{
 			uint32_t eax, ebx, ecx, edx;
 		};
 		REG_t reg[3];
-#ifdef _WIN32
+#if defined(_WIN32) && (defined(_M_IX86) || defined(_M_X64))
 		__cpuid((int*)&reg[0], 0x80000000);
 		if (0x80000002 <= reg[0].eax){
 			__cpuid((int*)&reg[0], 0x80000002);
@@ -50,7 +50,7 @@ namespace FFFDTD{
 			char* p = (char*)&reg;
 			result = (char*)reg;
 		}
-#elif __GNUC__
+#elif defined(__GNUC__) && (defined(__i386__) || defined(__amd64__))
 		__get_cpuid(0x80000000, &reg[0].eax, &reg[0].ebx, &reg[0].ecx, &reg[0].edx);
 		if (0x80000002 <= reg[0].eax){
 			__get_cpuid(0x80000002, &reg[0].eax, &reg[0].ebx, &reg[0].ecx, &reg[0].edx);

@@ -6,9 +6,9 @@ namespace FFFDTD{
 	// コンストラクタ
 	FFIStream::FFIStream(void)
 		: m_Head(nullptr), m_Current(nullptr), m_Tail(nullptr)
-#ifdef _WIN32
+#if defined(_WIN32)
 		, m_hFile(INVALID_HANDLE_VALUE), m_hMap(NULL)
-#elif __GNUC__
+#elif defined(__GNUC__)
 		, m_hFile(-1)
 #endif
 	{
@@ -34,7 +34,7 @@ namespace FFFDTD{
 	// ファイルから入力ストリームを作成する
 	FFIStream::FFIStream(const char *filepath) : FFIStream(){
 		uint64_t length;
-#ifdef _WIN32
+#if defined(_WIN32)
 		try{
 			// ファイルを開く
 			m_hFile = CreateFileA(filepath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
@@ -73,7 +73,7 @@ namespace FFFDTD{
 			}
 			throw;
 		}
-#elif __GNUC__
+#elif defined(__GNUC__)
 		// ファイルを開く
 		m_hFile = open(filepath, O_RDONLY);
 		if (m_hFile == -1){
@@ -128,7 +128,7 @@ namespace FFFDTD{
 
 	// デストラクタ
 	FFIStream::~FFIStream(){
-#ifdef _WIN32
+#if defined(_WIN32)
 		if (m_hFile != INVALID_HANDLE_VALUE){
 			UnmapViewOfFile(m_Head);
 			CloseHandle(m_hFile);
@@ -136,7 +136,7 @@ namespace FFFDTD{
 			m_hFile = INVALID_HANDLE_VALUE;
 			m_hMap = NULL;
 		}
-#elif __GNUC__
+#elif defined(__GNUC__)
 		if (m_Head != nullptr){
 			munmap(const_cast<uint8_t*>(m_Head), (size_t)length());
 			m_Head = nullptr;

@@ -2,10 +2,10 @@
 
 #include "FFType.h"
 
-#ifdef _WIN32
+#if defined(_WIN32)
 #define NOMINMAX
 #include <Windows.h>
-#elif __GNUC__
+#elif defined(__GNUC__)
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>

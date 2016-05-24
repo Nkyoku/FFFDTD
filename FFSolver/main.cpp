@@ -131,19 +131,39 @@ MPI_Datatype SOLVERINFO_t::m_MPIDataType;
 // メイン
 int main(int argc, char *argv[]){
 	// MPIを初期化する
-	MPI_Init(&argc, &argv);
+	int mpi_multithread_level;
+	MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &mpi_multithread_level);
 
 	// 自プロセスのランクを取得する
-	int my_rank;
-	int total_process;
-	MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &total_process);
-	if (my_rank == ROOT_RANK){
-		//printf("Process Rank    : %d\n", my_rank);
-		printf("Total Processes : %d\n", total_process);
-	}
-
+	int mpi_my_rank;
+	int mpi_total_process;
+	MPI_Comm_rank(MPI_COMM_WORLD, &mpi_my_rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &mpi_total_process);
+	
 	try{
+		if (mpi_my_rank == ROOT_RANK){
+			const char *mt_string;
+			switch (mpi_multithread_level){
+			case MPI_THREAD_SINGLE:
+				mt_string = "MPI_THREAD_SINGLE";
+				break;
+			case MPI_THREAD_FUNNELED:
+				mt_string = "MPI_THREAD_FUNNELED";
+				break;
+			case MPI_THREAD_SERIALIZED:
+				mt_string = "MPI_THREAD_SERIALIZED";
+				break;
+			case MPI_THREAD_MULTIPLE:
+				mt_string = "MPI_THREAD_MULTIPLE";
+				break;
+			default:
+				throw;
+			}
+			printf("MPI Multithread : %s\n", mt_string);
+			printf("Total Processes : %d\n", mpi_total_process);
+		}
+		//printf("Process Rank    : %d\n", mpi_my_rank);
+
 #if MULTI_SOLVER_TEST == 0
 		// シングルソルバーテスト
 
@@ -408,25 +428,25 @@ int main(int argc, char *argv[]){
 		std::vector<SOLVERINFO_t> whole_solverinfo_list;
 		for(size_t i = 0; i < solver_list.size(); i++){
 			FFSolver *solver = solver_list[i];
-			solverinfo_list.push_back(SOLVERINFO_t(solver->getSolverName().c_str(), my_rank, (uint32_t)i, 123 + 4 * my_rank, 456 + my_rank));
+			solverinfo_list.push_back(SOLVERINFO_t(solver->getSolverName().c_str(), mpi_my_rank, (uint32_t)i, 123 + 4 * mpi_my_rank, 456 + mpi_my_rank));
 		}
 		{
 			// 全体のソルバー数を取得する
 			uint32_t num_of_solvers = (uint32_t)solver_list.size();
-			std::vector<int> solver_count(total_process);
+			std::vector<int> solver_count(mpi_total_process);
 			MPI_Allgather(&num_of_solvers, 1, MPI_UINT32_T, solver_count.data(), 1, MPI_UINT32_T, MPI_COMM_WORLD);
 
 			// 全てのソルバー情報を集める
 			size_t total_solvers = 0;
-			std::vector<int> disp_list(total_process);
-			for (int p = 0; p < total_process; p++){
+			std::vector<int> disp_list(mpi_total_process);
+			for (int p = 0; p < mpi_total_process; p++){
 				disp_list[p] = (int)total_solvers;
 				total_solvers += solver_count[p];
 			}
 			whole_solverinfo_list.resize(total_solvers);
 			MPI_Allgatherv(solverinfo_list.data(), (int)solverinfo_list.size(), SOLVERINFO_t::getDataType(), whole_solverinfo_list.data(), solver_count.data(), disp_list.data(), SOLVERINFO_t::getDataType(), MPI_COMM_WORLD);
 		}
-		if (my_rank == ROOT_RANK){
+		if (mpi_my_rank == ROOT_RANK){
 			// 全てのソルバー情報を出力する
 			printf("Solvers :\n");
 			for (size_t i = 0; i < whole_solverinfo_list.size(); i++){
@@ -448,7 +468,7 @@ int main(int argc, char *argv[]){
 			2.0,
 			1e-5
 		};
-		if (my_rank == ROOT_RANK){
+		if (mpi_my_rank == ROOT_RANK){
 			// シミュレーション空間サイズを出力する
 			printf("Situation :\n");
 			printf("  GlobalSize  : %dx%dx%d\n", grid_x.count(), grid_y.count(), grid_z.count());
@@ -496,7 +516,7 @@ int main(int argc, char *argv[]){
 			// To Do
 			//
 		}
-		if (my_rank == ROOT_RANK){
+		if (mpi_my_rank == ROOT_RANK){
 			// 処理スライスの割り当てを出力する
 			printf("Divisions :\n");
 			index_t start = 0;
@@ -513,7 +533,7 @@ int main(int argc, char *argv[]){
 		index_t division_offset = 0;
 		for (size_t i = 0; i < whole_solverinfo_list.size(); i++){
 			auto &solverinfo = whole_solverinfo_list[i];
-			if (solverinfo.getRank() == my_rank){
+			if (solverinfo.getRank() == mpi_my_rank){
 				uint32_t index = solverinfo.getIndex();
 				FFSituation &situation = situation_list[index];
 				situation.setGrids(grid_x, grid_y, grid_z, bc);
@@ -525,7 +545,8 @@ int main(int argc, char *argv[]){
 		}
 		
 		// シミュレーション空間にオブジェクトを配置する
-		for (uint32_t i = 0; i < num_of_situations; i++){
+#pragma omp parallel for
+		for (int i = 0; i < (int)num_of_situations; i++){
 			FFSituation &situation = situation_list[i];
 			situation.placePECCuboid(index3_t(25, 25, 25), index3_t(25, 25, 126));
 			static const char diffgauss[] =
@@ -536,18 +557,16 @@ int main(int argc, char *argv[]){
 		}
 		
 		// ソルバーを構成する
-		if (my_rank == ROOT_RANK){
+		if (mpi_my_rank == ROOT_RANK){
 			printf("Configuring solver\n");
 		}
 		fflush(stdout);
 		size_t NT = 1000;
-		double timestep = 0.0;
+		double timestep = situation_list[0].calcTimestep();
 		std::vector<double> freq_list = linspace(75e6, 3e9, 100);
-		for (uint32_t i = 0; i < num_of_situations; i++){
+#pragma omp parallel for
+		for (int i = 0; i < (int)num_of_situations; i++){
 			FFSituation &situation = situation_list[i];
-			if (i == 0){
-				timestep = situation.calcTimestep();
-			}
 			situation.configureSolver(solver_list[i], timestep, NT, freq_list);
 		}
 
@@ -556,74 +575,96 @@ int main(int argc, char *argv[]){
 		std::vector<int> bottom_rank(num_of_situations, -1), top_rank(num_of_situations, -1);
 		for (size_t i = 0; i < whole_solverinfo_list.size(); i++){
 			auto &solverinfo = whole_solverinfo_list[i];
-			if (solverinfo.getRank() == my_rank){
+			if (solverinfo.getRank() == mpi_my_rank){
 				uint32_t index = solverinfo.getIndex();
 				if (0 < i){
 					// 下に別のソルバーが接続される
 					auto &bottom_solverinfo = whole_solverinfo_list[i - 1];
-					if (bottom_solverinfo.getRank() == my_rank){
+					if (bottom_solverinfo.getRank() == mpi_my_rank){
 						bottom_situation[index] = &situation_list[bottom_solverinfo.getIndex()];
-						printf("  [%d] Rank[%d] Bottom section is FFSituation[%d]\n", (int)i, my_rank, bottom_solverinfo.getIndex());
+						printf("  [%d] Rank[%d] Bottom section is FFSituation[%d]\n", (int)i, mpi_my_rank, bottom_solverinfo.getIndex());
 					}
 					else{
 						bottom_rank[index] = bottom_solverinfo.getRank();
-						printf("  [%d] Rank[%d] Bottom section is Rank[%d]\n", (int)i, my_rank, bottom_solverinfo.getRank());
+						printf("  [%d] Rank[%d] Bottom section is Rank[%d]\n", (int)i, mpi_my_rank, bottom_solverinfo.getRank());
 					}
 				}
 				if (i < (whole_solverinfo_list.size() - 1)){
 					// 上に別のソルバーが接続される
 					auto &top_solverinfo = whole_solverinfo_list[i + 1];
-					if (top_solverinfo.getRank() == my_rank){
+					if (top_solverinfo.getRank() == mpi_my_rank){
 						top_situation[index] = &situation_list[top_solverinfo.getIndex()];
-						printf("  [%d] Rank[%d] Top section is FFSituation[%d]\n", (int)i, my_rank, top_solverinfo.getIndex());
+						printf("  [%d] Rank[%d] Top section is FFSituation[%d]\n", (int)i, mpi_my_rank, top_solverinfo.getIndex());
 					}
 					else{
 						top_rank[index] = top_solverinfo.getRank();
-						printf("  [%d] Rank[%d] Top section is Rank[%d]\n", (int)i, my_rank, top_solverinfo.getRank());
+						printf("  [%d] Rank[%d] Top section is Rank[%d]\n", (int)i, mpi_my_rank, top_solverinfo.getRank());
 					}
 				}
 			}
 		}
+		fflush(stdout);
 		
 		// シミュレーションを行う
 		MPI_Barrier(MPI_COMM_WORLD);
-		if (my_rank == ROOT_RANK){
+		if (mpi_my_rank == ROOT_RANK){
 			printf("Simulation started\n");
+			fflush(stdout);
 		}
-		fflush(stdout);
 		for (size_t it = 0; it < NT; it++){
 			if ((it % 100) == 0){
-				for (uint32_t i = 0; i < num_of_situations; i++){
+				double total_e = 0.0, total_h = 0.0;
+#pragma omp parallel for reduction(+ : total_e, total_h)
+				for (int i = 0; i < (int)num_of_situations; i++){
 					dvec2 total = situation_list[i].calcTotalEM();
-					printf("  Rank[%d] Index[%d] Step%d : E=%e, H=%e\n", my_rank, i, (int)it, total.x, total.y);
+					total_e += total.x;
+					total_h += total.y;
 				}
-				fflush(stdout);
+				double buf[2] = {total_e, total_h};
+				if (mpi_my_rank == ROOT_RANK){
+					double recv_buf[2];
+					MPI_Reduce(buf, recv_buf, 2, MPI_DOUBLE, MPI_SUM, ROOT_RANK, MPI_COMM_WORLD);
+					printf("  Step%d : E=%e, H=%e\n", (int)it, recv_buf[0], recv_buf[1]);
+					fflush(stdout);
+				}
+				else{
+					MPI_Reduce(buf, nullptr, 2, MPI_DOUBLE, MPI_SUM, ROOT_RANK, MPI_COMM_WORLD);
+				}
 			}
 			bool result = true;
-			for (uint32_t i = 0; i < num_of_situations; i++){
-				result &= situation_list[i].executeSolverStep1();
+#pragma omp parallel
+			{
+#pragma omp for reduction(&& : result)
+				for (int i = 0; i < (int)num_of_situations; i++){
+					result &= situation_list[i].executeSolverStep1();
+				}
+				if (result == true){
+#pragma omp for
+					for (int i = 0; i < (int)num_of_situations; i++){
+						situation_list[i].executeSolverStep2();
+					}
+#pragma omp for
+					for (int i = 0; i < (int)num_of_situations; i++){
+						situation_list[i].executeSolverStep3(bottom_situation[i], top_situation[i], bottom_rank[i], top_rank[i]);
+					}
+#pragma omp for
+					for (int i = 0; i < (int)num_of_situations; i++){
+						situation_list[i].executeSolverStep4();
+					}
+#pragma omp for
+					for (int i = 0; i < (int)num_of_situations; i++){
+						situation_list[i].executeSolverStep5(bottom_situation[i], top_situation[i], bottom_rank[i], top_rank[i]);
+					}
+				}
 			}
 			if (result == false){
-				// 計算終了
 				break;
-			}
-			for (uint32_t i = 0; i < num_of_situations; i++){
-				situation_list[i].executeSolverStep2();
-			}
-			for (uint32_t i = 0; i < num_of_situations; i++){
-				situation_list[i].executeSolverStep3(bottom_situation[i], top_situation[i], bottom_rank[i], top_rank[i]);
-			}
-			for (uint32_t i = 0; i < num_of_situations; i++){
-				situation_list[i].executeSolverStep4();
-			}
-			for (uint32_t i = 0; i < num_of_situations; i++){
-				situation_list[i].executeSolverStep5(bottom_situation[i], top_situation[i], bottom_rank[i], top_rank[i]);
 			}
 		}
 
 		// シミュレーションを終了する
 		MPI_Barrier(MPI_COMM_WORLD);
-		if (my_rank == ROOT_RANK){
+		if (mpi_my_rank == ROOT_RANK){
 			printf("Simulation finished\n");
 		}
 		fflush(stdout);
@@ -661,7 +702,7 @@ int main(int argc, char *argv[]){
 	// MPIを終了する
 	MPI_Finalize();
 
-	if (my_rank == ROOT_RANK){
+	if (mpi_my_rank == ROOT_RANK){
 		printf("\nPress any key.\n");
 		fflush(stdout);
 		getchar();

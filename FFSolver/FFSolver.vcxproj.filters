@@ -33,103 +33,103 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="FFGrid.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="FFMaterial.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="FFSituation.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\Format\FFVolumeData.h">
-      <Filter>ヘッダー ファイル\Format</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\Format\FFSliceData.h">
-      <Filter>ヘッダー ファイル\Format</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\Basic\FFIStream.h">
-      <Filter>ヘッダー ファイル\Basic</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\FFConst.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\FFType.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\Basic\FFOStream.h">
-      <Filter>ヘッダー ファイル\Basic</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\Format\FFBitSliceData.h">
-      <Filter>ヘッダー ファイル\Format</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\Format\FFBitVolumeData.h">
-      <Filter>ヘッダー ファイル\Format</Filter>
-    </ClInclude>
-    <ClInclude Include="FFSource.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="FFPointObject.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="FFPort.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="FFSolver.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="FFSolverCPU.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Circuit\FFCircuit.h">
-      <Filter>ヘッダー ファイル\Circuit</Filter>
-    </ClInclude>
-    <ClInclude Include="Circuit\FFWaveform.h">
-      <Filter>ヘッダー ファイル\Circuit</Filter>
-    </ClInclude>
-    <ClInclude Include="Circuit\FFVoltageSourceComponent.h">
-      <Filter>ヘッダー ファイル\Circuit</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="source\FFGrid.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="FFGrid.cpp">
+    <ClCompile Include="source\FFPort.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="FFSituation.cpp">
+    <ClCompile Include="source\FFSituation.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\Format\FFSliceData.cpp">
+    <ClCompile Include="source\FFSolver.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="source\FFSolverCPU.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="source\main.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Format\FFBitSliceData.cpp">
       <Filter>ソース ファイル\Format</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\Format\FFVolumeData.cpp">
+    <ClCompile Include="source\Format\FFBitVolumeData.cpp">
       <Filter>ソース ファイル\Format</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\Basic\FFIStream.cpp">
-      <Filter>ソース ファイル\Basic</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\Basic\FFOStream.cpp">
-      <Filter>ソース ファイル\Basic</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\Format\FFBitVolumeData.cpp">
+    <ClCompile Include="source\Format\FFSliceData.cpp">
       <Filter>ソース ファイル\Format</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\Format\FFBitSliceData.cpp">
+    <ClCompile Include="source\Format\FFVolumeData.cpp">
       <Filter>ソース ファイル\Format</Filter>
     </ClCompile>
-    <ClCompile Include="FFPort.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="FFSolver.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="FFSolverCPU.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Circuit\FFWaveform.cpp">
+    <ClCompile Include="source\Circuit\FFWaveform.cpp">
       <Filter>ソース ファイル\Circuit</Filter>
     </ClCompile>
+    <ClCompile Include="source\Basic\FFIStream.cpp">
+      <Filter>ソース ファイル\Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Basic\FFOStream.cpp">
+      <Filter>ソース ファイル\Basic</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="source\FFConst.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="source\FFGrid.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="source\FFMaterial.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="source\FFPointObject.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="source\FFPort.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="source\FFSituation.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="source\FFSolver.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="source\FFSolverCPU.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="source\FFSource.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="source\FFType.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Format\FFBitSliceData.h">
+      <Filter>ヘッダー ファイル\Format</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Format\FFBitVolumeData.h">
+      <Filter>ヘッダー ファイル\Format</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Format\FFSliceData.h">
+      <Filter>ヘッダー ファイル\Format</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Format\FFVolumeData.h">
+      <Filter>ヘッダー ファイル\Format</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Circuit\FFVoltageSourceComponent.h">
+      <Filter>ヘッダー ファイル\Circuit</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Circuit\FFWaveform.h">
+      <Filter>ヘッダー ファイル\Circuit</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Circuit\FFCircuit.h">
+      <Filter>ヘッダー ファイル\Circuit</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Basic\FFOStream.h">
+      <Filter>ヘッダー ファイル\Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Basic\FFIStream.h">
+      <Filter>ヘッダー ファイル\Basic</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "FFType.h"
+#include "../FFType.h"
 #include <vector>
 #include <stdio.h>
 

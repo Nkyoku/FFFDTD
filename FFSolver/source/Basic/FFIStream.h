@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "FFType.h"
+#include "../FFType.h"
 
 #if defined(_WIN32)
 #define NOMINMAX

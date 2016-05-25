@@ -1,5 +1,5 @@
 ﻿#include "FFBitSliceData.h"
-#include "FFConst.h"
+#include "../FFConst.h"
 
 
 

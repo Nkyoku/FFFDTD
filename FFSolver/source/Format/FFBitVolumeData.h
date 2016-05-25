@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include "FFConst.h"
-//#include "Basic/FFIStream.h"
+#include "../FFConst.h"
+//#include "../Basic/FFIStream.h"
 #include "FFBitSliceData.h"
 
 

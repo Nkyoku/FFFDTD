@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include "FFType.h"
-//#include "Basic/FFIStream.h"
+#include "../FFType.h"
+//#include "../Basic/FFIStream.h"
 
 
 

@@ -453,8 +453,8 @@ int main(int argc, char *argv[]){
 				auto &it = whole_solverinfo_list[i];
 				printf("  [%d] Rank[%d] Solver[%d] : %llu c/s, %llu bytes, '%s'\n", (int)i, it.getRank(), it.getIndex(), it.getSpeed(), it.getMemory(), it.getName());
 			}
+			fflush(stdout);
 		}
-		fflush(stdout);
 
 		// シミュレーション環境の大きさを入力する
 		FFGrid grid_x = constspace(0.002, 50);
@@ -472,8 +472,8 @@ int main(int argc, char *argv[]){
 			// シミュレーション空間サイズを出力する
 			printf("Situation :\n");
 			printf("  GlobalSize  : %dx%dx%d\n", grid_x.count(), grid_y.count(), grid_z.count());
+			fflush(stdout);
 		}
-		fflush(stdout);
 
 		// 各ソルバーへの問題の分割の仕方を決定する
 		std::vector<index_t> division(whole_solverinfo_list.size());
@@ -527,6 +527,7 @@ int main(int argc, char *argv[]){
 					start += division[i];
 				}
 			}
+			fflush(stdout);
 		}
 
 		// シミュレーション空間を作成する
@@ -556,13 +557,20 @@ int main(int argc, char *argv[]){
 			situation.placePort(index3_t(25, 25, 75), Z_PLUS, new FFVoltageSourceComponent(new FFWaveform(diffgauss), 50.0));
 		}
 		
+		// タイムステップを全プロセスで共有する
+		double timestep;
+		if (mpi_my_rank == ROOT_RANK){
+			timestep = situation_list[0].calcTimestep();
+		}
+		MPI_Bcast(&timestep, 1, MPI_DOUBLE, mpi_my_rank, MPI_COMM_WORLD);
+		
 		// ソルバーを構成する
 		if (mpi_my_rank == ROOT_RANK){
 			printf("Configuring solver\n");
+			printf("  Dt = %e s\n", timestep);
+			fflush(stdout);
 		}
-		fflush(stdout);
 		size_t NT = 1000;
-		double timestep = situation_list[0].calcTimestep();
 		std::vector<double> freq_list = linspace(75e6, 3e9, 100);
 #pragma omp parallel for
 		for (int i = 0; i < (int)num_of_situations; i++){

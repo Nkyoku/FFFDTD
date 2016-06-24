@@ -20,3 +20,6 @@ ipch/
 backup/
 bin/
 tmp/
+/test/test_generate.py
+/test/test.ffs
+/test/solvers.ini

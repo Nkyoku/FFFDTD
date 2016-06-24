@@ -31,6 +31,18 @@
     <Filter Include="ソース ファイル\Circuit">
       <UniqueIdentifier>{3ec3a09f-50b6-4414-8b86-202598161ccc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\mpack">
+      <UniqueIdentifier>{662dabd8-18db-475c-b948-04cb27f34cd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\mpack">
+      <UniqueIdentifier>{28f4fa1d-302d-4568-a6c4-efd57cdda356}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\inih">
+      <UniqueIdentifier>{8647d7fd-7067-469d-bd65-ea7e3c80b152}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\inih">
+      <UniqueIdentifier>{07488267-476e-4ed9-a51b-156e7962bca6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\FFGrid.cpp">
@@ -71,6 +83,39 @@
     </ClCompile>
     <ClCompile Include="source\Basic\FFOStream.cpp">
       <Filter>ソース ファイル\Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="source\mpack\mpack-common.c">
+      <Filter>ソース ファイル\mpack</Filter>
+    </ClCompile>
+    <ClCompile Include="source\mpack\mpack-expect.c">
+      <Filter>ソース ファイル\mpack</Filter>
+    </ClCompile>
+    <ClCompile Include="source\mpack\mpack-node.c">
+      <Filter>ソース ファイル\mpack</Filter>
+    </ClCompile>
+    <ClCompile Include="source\mpack\mpack-platform.c">
+      <Filter>ソース ファイル\mpack</Filter>
+    </ClCompile>
+    <ClCompile Include="source\mpack\mpack-reader.c">
+      <Filter>ソース ファイル\mpack</Filter>
+    </ClCompile>
+    <ClCompile Include="source\mpack\mpack-writer.c">
+      <Filter>ソース ファイル\mpack</Filter>
+    </ClCompile>
+    <ClCompile Include="source\parser.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Basic\FFException.cpp">
+      <Filter>ソース ファイル\Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="source\cmdline.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="source\solver_setting.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="source\inih\ini.c">
+      <Filter>ソース ファイル\inih</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -130,6 +175,48 @@
     </ClInclude>
     <ClInclude Include="source\Basic\FFIStream.h">
       <Filter>ヘッダー ファイル\Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="source\mpack\mpack-reader.h">
+      <Filter>ヘッダー ファイル\mpack</Filter>
+    </ClInclude>
+    <ClInclude Include="source\mpack\mpack-writer.h">
+      <Filter>ヘッダー ファイル\mpack</Filter>
+    </ClInclude>
+    <ClInclude Include="source\mpack\mpack.h">
+      <Filter>ヘッダー ファイル\mpack</Filter>
+    </ClInclude>
+    <ClInclude Include="source\mpack\mpack-common.h">
+      <Filter>ヘッダー ファイル\mpack</Filter>
+    </ClInclude>
+    <ClInclude Include="source\mpack\mpack-expect.h">
+      <Filter>ヘッダー ファイル\mpack</Filter>
+    </ClInclude>
+    <ClInclude Include="source\mpack\mpack-node.h">
+      <Filter>ヘッダー ファイル\mpack</Filter>
+    </ClInclude>
+    <ClInclude Include="source\mpack\mpack-platform.h">
+      <Filter>ヘッダー ファイル\mpack</Filter>
+    </ClInclude>
+    <ClInclude Include="source\mpack\mpack-config.h">
+      <Filter>ヘッダー ファイル\mpack</Filter>
+    </ClInclude>
+    <ClInclude Include="source\main.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="source\parser.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Basic\FFException.h">
+      <Filter>ヘッダー ファイル\Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="source\cmdline.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="source\solver_setting.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="source\inih\ini.h">
+      <Filter>ヘッダー ファイル\inih</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

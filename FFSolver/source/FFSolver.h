@@ -69,7 +69,10 @@ namespace FFFDTD{
 		virtual ~FFSolver(){}
 
 		// ソルバーの名前を取得する
-		virtual std::string getSolverName(void) const = 0;
+		virtual std::string getName(void) const = 0;
+
+		// ソルバーのメモリー容量[byte]を取得する
+		virtual uint64_t getMemoryCapacity(void) const = 0;
 
 		// 空間のサイズを取得する
 		const index3_t& getSize(void) const{

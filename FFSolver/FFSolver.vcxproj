@@ -11,12 +11,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Basic\FFException.cpp" />
     <ClCompile Include="source\Basic\FFIStream.cpp" />
     <ClCompile Include="source\Basic\FFOStream.cpp" />
     <ClCompile Include="source\Circuit\FFWaveform.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/bigobj %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <ClCompile Include="source\cmdline.cpp" />
     <ClCompile Include="source\FFGrid.cpp" />
     <ClCompile Include="source\FFPort.cpp" />
     <ClCompile Include="source\FFSituation.cpp" />
@@ -26,14 +28,25 @@
     <ClCompile Include="source\Format\FFBitVolumeData.cpp" />
     <ClCompile Include="source\Format\FFSliceData.cpp" />
     <ClCompile Include="source\Format\FFVolumeData.cpp" />
+    <ClCompile Include="source\inih\ini.c" />
     <ClCompile Include="source\main.cpp" />
+    <ClCompile Include="source\mpack\mpack-common.c" />
+    <ClCompile Include="source\mpack\mpack-expect.c" />
+    <ClCompile Include="source\mpack\mpack-node.c" />
+    <ClCompile Include="source\mpack\mpack-platform.c" />
+    <ClCompile Include="source\mpack\mpack-reader.c" />
+    <ClCompile Include="source\mpack\mpack-writer.c" />
+    <ClCompile Include="source\parser.cpp" />
+    <ClCompile Include="source\solver_setting.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="source\Basic\FFException.h" />
     <ClInclude Include="source\Basic\FFIStream.h" />
     <ClInclude Include="source\Basic\FFOStream.h" />
     <ClInclude Include="source\Circuit\FFCircuit.h" />
     <ClInclude Include="source\Circuit\FFVoltageSourceComponent.h" />
     <ClInclude Include="source\Circuit\FFWaveform.h" />
+    <ClInclude Include="source\cmdline.h" />
     <ClInclude Include="source\FFConst.h" />
     <ClInclude Include="source\FFGrid.h" />
     <ClInclude Include="source\FFMaterial.h" />
@@ -48,6 +61,18 @@
     <ClInclude Include="source\Format\FFBitVolumeData.h" />
     <ClInclude Include="source\Format\FFSliceData.h" />
     <ClInclude Include="source\Format\FFVolumeData.h" />
+    <ClInclude Include="source\inih\ini.h" />
+    <ClInclude Include="source\main.h" />
+    <ClInclude Include="source\mpack\mpack-common.h" />
+    <ClInclude Include="source\mpack\mpack-config.h" />
+    <ClInclude Include="source\mpack\mpack-expect.h" />
+    <ClInclude Include="source\mpack\mpack-node.h" />
+    <ClInclude Include="source\mpack\mpack-platform.h" />
+    <ClInclude Include="source\mpack\mpack-reader.h" />
+    <ClInclude Include="source\mpack\mpack-writer.h" />
+    <ClInclude Include="source\mpack\mpack.h" />
+    <ClInclude Include="source\parser.h" />
+    <ClInclude Include="source\solver_setting.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6489C7B9-C16B-413D-A84A-2B338F724499}</ProjectGuid>

@@ -17,6 +17,13 @@ namespace FFFDTD{
 		index3_t pmlL;
 		double pmlM;
 		double pmlR0;
+
+		// コンストラクタ
+		BC_t(void)
+			: x(BoundaryCondition::PEC), y(BoundaryCondition::PEC), z(BoundaryCondition::PEC)
+			, pmlL(0, 0, 0), pmlM(0.0), pmlR0(0.0)
+		{
+		}
 	};
 
 	

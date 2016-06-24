@@ -1,12 +1,16 @@
 ﻿#include "FFSolverCPU.h"
 #include <string.h>
+#include <algorithm>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 #ifdef _WIN32
+#define NOMINMAX
+#include <Windows.h>
 #include <intrin.h>
 #elif __GNUC__
 #include <cpuid.h>
+#include <unistd.h>
 #endif
 
 
@@ -35,7 +39,7 @@ namespace FFFDTD{
 	}
 
 	// ソルバーの名前を取得する
-	std::string FFSolverCPU::getSolverName(void) const{
+	std::string FFSolverCPU::getName(void) const{
 		std::string result("Generic CPU");
 		struct REG_t{
 			uint32_t eax, ebx, ecx, edx;
@@ -61,6 +65,28 @@ namespace FFFDTD{
 		}
 #endif
 		return result;
+	}
+
+	// ソルバーのメモリー容量[byte]を取得する
+	uint64_t FFSolverCPU::getMemoryCapacity(void) const{
+		uint64_t result;
+#if defined(_WIN32)
+		MEMORYSTATUSEX msex;
+		msex.dwLength = sizeof(MEMORYSTATUSEX);
+		if (GlobalMemoryStatusEx(&msex) != FALSE){
+			result = msex.ullTotalPhys;
+		}
+		else{
+			result = SIZE_MAX;
+		}
+#elif defined(__GNUC__)
+		uint64_t page_size = sysconf(_SC_PAGESIZE);
+		uint64_t num_of_pages = sysconf(_SC_PHYS_PAGES);
+		result = page_size * num_of_pages;
+#else
+		result = SIZE_MAX;
+#endif
+		return std::min(result, SIZE_MAX);;
 	}
 
 	// 電界・磁界の絶対合計値を計算する
